@@ -20,47 +20,47 @@ class test_helpers(unittest.TestCase):
         test_array = np.random.random(size=(200, 200))
 
         # Test a straightforward sum over a straight, pixel-aligned line
-        # val1 = helpers.wu_sum(test_array, (10, 5), (110, 5))
-        # val1c = np.sum(test_array[10:111, 5])
-        # self.assertTrue(np.abs(val1 - val1c) < tol)
+        val1 = helpers.wu_sum(test_array, (10, 5), (110, 5))
+        val1c = np.sum(test_array[10:111, 5])
+        self.assertAlmostEqual(val1, val1c, delta=tol)
 
         # If both lines propagate in the opposite direction and only
         # include the same pixels, their sum should be the same as two
         # straight lines
-        # val2 = helpers.wu_sum(test_array, (10, 5), (110, 6)) + \
-        #        helpers.wu_sum(test_array, (10, 6), (110, 5))
-        # val2c = np.sum(test_array[10:111, 5]) + np.sum(test_array[10:111, 6])
-        # self.assertTrue(np.abs(val2 - val2c) < tol)
+        val2 = helpers.wu_sum(test_array, (10, 5), (110, 6)) + \
+               helpers.wu_sum(test_array, (10, 6), (110, 5))
+        val2c = np.sum(test_array[10:111, 5]) + np.sum(test_array[10:111, 6])
+        self.assertAlmostEqual(val2, val2c, delta=tol)
 
-        # # Test whether everything still works if we have a non-integer start x
-        # val3 = helpers.wu_sum(test_array, (9.5, 5), (110, 6)) + \
-        #        helpers.wu_sum(test_array, (9.5, 6), (110, 5))
-        # val3c = val2c + np.sum(test_array[9, 5:7]) * 0.5
-        # self.assertTrue(np.abs(val3 - val3c) < tol)
+        # Test whether everything still works if we have a non-integer start x
+        val3 = helpers.wu_sum(test_array, (9.5, 5), (110, 6)) + \
+               helpers.wu_sum(test_array, (9.5, 6), (110, 5))
+        val3c = val2c + np.sum(test_array[9, 5:7]) * 0.5
+        self.assertAlmostEqual(val3, val3c, delta=tol)
 
-        # # Test a non-integer stop x
-        # val4 = helpers.wu_sum(test_array, (10, 5), (110.5, 6)) + \
-        #        helpers.wu_sum(test_array, (10, 6), (110.5, 5))
-        # val4c = val2c + np.sum(test_array[111, 5:7]) * 0.5
-        # self.assertTrue(np.abs(val4 - val4c) < tol)
+        # Test a non-integer stop x
+        val4 = helpers.wu_sum(test_array, (10, 5), (110.5, 6)) + \
+               helpers.wu_sum(test_array, (10, 6), (110.5, 5))
+        val4c = val2c + np.sum(test_array[111, 5:7]) * 0.5
+        self.assertAlmostEqual(val4, val4c, delta=tol)
 
-        # # Test non-integer start and stop y
-        # val5 = helpers.wu_sum(test_array, (10, 5.1), (110, 5.9)) + \
-        #        helpers.wu_sum(test_array, (10, 5.9), (110, 5.1))
-        # val5c = val2c
-        # self.assertTrue(np.abs(val5 - val5c) < tol)
+        # Test non-integer start and stop y
+        val5 = helpers.wu_sum(test_array, (10, 5.1), (110, 5.9)) + \
+               helpers.wu_sum(test_array, (10, 5.9), (110, 5.1))
+        val5c = val2c
+        self.assertAlmostEqual(val5, val5c, delta=tol)
 
-        # # Test non-integer start and stop y as well as non-integer start x
-        # val6 = helpers.wu_sum(test_array, (9.5, 5.1), (110, 5.9)) + \
-        #        helpers.wu_sum(test_array, (9.5, 5.9), (110, 5.1))
-        # val6c = val3c
-        # self.assertTrue(np.abs(val6 - val6c) < tol)
+        # Test non-integer start and stop y as well as non-integer start x
+        val6 = helpers.wu_sum(test_array, (9.5, 5.1), (110, 5.9)) + \
+               helpers.wu_sum(test_array, (9.5, 5.9), (110, 5.1))
+        val6c = val3c
+        self.assertAlmostEqual(val6, val6c, delta=tol)
 
-        # # Test non-integer stop x with non-integer start and stop y
-        # val7 = helpers.wu_sum(test_array, (10, 5.1), (110.5, 5.9)) + \
-        #        helpers.wu_sum(test_array, (10, 5.9), (110.5, 5.1))
-        # val7c = val4c
-        # self.assertTrue(np.abs(val7 - val7c) < tol)
+        # Test non-integer stop x with non-integer start and stop y
+        val7 = helpers.wu_sum(test_array, (10, 5.1), (110.5, 5.9)) + \
+               helpers.wu_sum(test_array, (10, 5.9), (110.5, 5.1))
+        val7c = val4c
+        self.assertAlmostEqual(val7, val7c, delta=tol)
 
         # Test whether summing either row-wise or column-wise makes a
         # difference in the case of almost completely 45 degree lines
