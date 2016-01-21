@@ -168,7 +168,15 @@ def order_points(points):
 def get_corners(lines):
     """Find the corners of a rectangle given by four lines. Probably
     crashes if two lines are exactly parallel."""
-    # Look for parallel lines first
+    # How to find the corners of a rectangle?
+    # Idea: find two opposite sides first.
+    #       These can be defined in the following way: When starting
+    #       from their intersection AB, the intersections AC and AD
+    #       need to have the same distance-order as BC and BD (or the
+    #       triplet (AB,AC,AD) must have the same order as the triplet
+    #       (AB,BC,BD)).
+
+    # Check for parallel lines first
     lines = [np.array(l) for l in lines]
     parallels = [np.argwhere([find_intersection(lines[jj], lines[ii]) is None
                              for jj in range(ii + 1, len(lines))])
@@ -200,5 +208,43 @@ def get_corners(lines):
             # The two lines are opposite in the rectangle
             break
     lines = [l, rest[0], ol, rest[1]]
-    corners = [find_intersection(lines[ii], lines[(ii + 1) % 4]) for ii in range(4)]
+    corners = [find_intersection(lines[ii], lines[(ii + 1) % 4])
+               for ii in range(4)]
     return (corners, lines)
+
+
+def combinations(n, maxes):
+    """This is a generator that returns all possible ways to distribute
+    n tokens into len(maxes) buckets and where bucket n can only hold
+    maxes[n] items."""
+    if n <= sum(maxes):
+        if len(maxes) == 1:
+            yield [n]
+        else:
+            for ii in range(min(n + 1, maxes[-1] + 1)):
+                for r in combinations(n - ii, maxes[:-1]):
+                    yield r + [ii]
+
+
+def allcombinations(maxes):
+    """This is a generator that returns all possible lists L of length
+    len(maxes) with only integer entries and where for entry n holds:
+    0<=L[n]<=maxes[n].
+    The values are returned in the order of increasing sum(L).
+    This is e.g. useful if we want to look at all possible combinations of
+    items from len(maxes) buckets, where each bucket either holds infinitely
+    many items or the items are ordered by their likelyhood."""
+    for ii in range(sum(maxes) + 1):
+        for c in combinations(ii, maxes):
+            yield c
+
+
+def get_pairs(l):
+    fst = next(l)
+    try:
+        while True:
+            snd = next(l)
+            yield (fst, snd)
+            fst = snd
+    except StopIteration:
+        pass

@@ -1,5 +1,5 @@
 import helpers
-import rectangle_finder
+import rectangle_finder as rf
 import unittest
 import numpy as np
 
@@ -62,6 +62,17 @@ class test_helpers(unittest.TestCase):
         val2_y_l = helpers.wu_sum(test_array, (20.3, 10.3), (120.1, 110.1 - tol))
         self.assertAlmostEqual(val2_x_l, val2_y_l, delta=10 * tol)
 
+        # Test whether transposing the array and the summation range yields the same results
+        random_points = [np.random.rand(2, 1) * test_array.shape[ii]
+                         for ii in range(2)]
+        val8_1 = helpers.wu_sum(test_array, random_points[0], random_points[1])
+        val8_2 = helpers.wu_sum(test_array, random_points[1], random_points[0])
+        random_points_t = [a[-1::-1] for a in random_points]
+        val8_3 = helpers.wu_sum(test_array.transpose(), random_points_t[0],
+                                                        random_points_t[1])
+        self.assertAlmostEqual(val8_1, val8_2, delta=tol)
+        self.assertAlmostEqual(val8_1, val8_3, delta=tol)
+
     def test_find_intersection(self):
         val_1_f = helpers.find_intersection(np.array([[1, 0], [0, 1]]),
                                             np.array([[0, 0], [2, 0]]))
@@ -100,13 +111,40 @@ class test_helpers(unittest.TestCase):
         corners_c_2 = [[0, 0], [1, 0], [1, 1], [0, 1]]
         self.assertTrue(helpers.points_match(val_2, corners_c_2, tol=1e-13))
 
-        
-# class test_helpers(unittest.TestCase):
-#     def test_refine_line(self):
-#         pass
+    def test_get_pairs(self):
+        l = [1, 2, 3, 4]
+        val_f = list(helpers.get_pairs(iter(l)))
+        val_c = [(1, 2), (2, 3), (3, 4)]
+        self.assertEqual(val_f, val_c)
 
-#     def test_overlap_sum(self):
-#         pass
-        
+
+class test_rectangle_finder(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.sample_image = rf.loadimage('../test_whiteboards/cellphone_samples/whiteboard_skewed.jpg')
+        (self.contours, ratio) = rf.get_small_edge(self.sample_image)
+        self.radon = rf.radon_transform(self.contours)
+        pass
+
+    def test_refine_line(self):
+        pass
+
+    def test_overlap_sum(self):
+        pass
+
+    def test_poor_mans_sino(self):
+        tst = rf.poor_mans_sino(self.contours)
+
+    def test_sine_conversion(self):
+        shape = (500, 800)
+        max_offset = np.sqrt(2) * np.max(shape)
+        (angle, offset) = np.random.rand(2) * np.array([180, max_offset])
+
+        line = rf.sino_to_line(angle, offset, shape)
+        (s_angle, s_offset) = rf.line_to_sino(line, shape)
+
+        self.assertAlmostEqual(s_angle, angle)
+        self.assertAlmostEqual(s_offset, offset)
+
 if __name__ == "__main__":
     unittest.main()
