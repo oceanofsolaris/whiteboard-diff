@@ -27,6 +27,24 @@ def points_match(pA, pB, tol=1):
     return True
 
 
+def points_contained(pA, pB, tol=1):
+    """Check whether all points in pA are (approximately) contained in
+    pB. Each point in pB might be matched to multiple points in pA (this
+    is different to points_match)."""
+
+    pA = np.array(pA)
+    pB = np.array(pB)
+
+    tolSq = tol ** 2
+
+    for val in pA:
+        dists = (pB - val) ** 2
+        euclid_dists = np.sum(dists, axis=1)
+        if np.min(euclid_dists) > tolSq:
+            return False
+    return True
+
+
 def wu_sort_points(p1, p2, dim):
     """This is a helper function for wu_sum in order to bring the points
     into the right order."""

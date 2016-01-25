@@ -64,3 +64,7 @@ def get_peaks(A, width=5):
     peaks = np.transpose(np.nonzero((flat == A) * A))
     vals = [A[x, y] for (x, y) in peaks]
     return peaks[np.argsort(vals)][::-1], np.sort(vals)[::-1]
+
+def get_blurred_peaks(A, width, blurwidth=5):
+    A_b = gaussian_blur(A, blurwidth)
+    return get_peaks(A_b, width)

@@ -16,6 +16,21 @@ class test_helpers(unittest.TestCase):
             result = helpers.points_match(pA, pB, rad)
             self.assertEqual(res_val, result)
 
+    def test_points_contained(self):
+        values = [([[1.2, 1.4]], [[1.3, 1.4]], 0.11, True),
+                  ([[1.2, 1.4], [0.1, 2.9]], [[0.0, 3.0], [1.2, 1.6]], 0.25, True),
+                  ([[1.2, 1.4]], [[0.0, 3.0], [1.2, 1.6]], 0.25, True),
+                  ([[1.2, 1.4], [0.1, 2.9]], [[0.0, 3.0], [1.3, 1.45]], 0.1, False),
+                  ([[1.0, 1.0], [1.5, 1.2]], [[1.2, 1.2]], 0.31, True),
+                  ([[1.0, 1.0], [1.5, 1.5]], [[1.2, 1.2]], 0.2, False),
+                  ([[1.0, 1.0], [1.5, 1.2]], [[1.2, 1.2], [100, 100]], 0.31, True),
+                  ([[1.0, 1.0], [1.5, 1.2]], [[1.2, 1.2], [100, 100]], 0.2, False),
+                  ([[2.0, 2.0]], [[1.95, 2.0], [2.05, 2.0]], 0.1, True)]
+        for pA, pB, rad, res_val in values:
+            result = helpers.points_contained(pA, pB, rad)
+            self.assertEqual(res_val, result)
+
+
     def test_wu_sum(self):
         """Test whether the wu-sum does what it is supposed to do."""
         tol = 1e-13
@@ -63,7 +78,7 @@ class test_helpers(unittest.TestCase):
         self.assertAlmostEqual(val2_x_l, val2_y_l, delta=10 * tol)
 
         # Test whether transposing the array and the summation range yields the same results
-        random_points = [np.random.rand(2, 1) * test_array.shape[ii]
+        random_points = [np.random.rand(2, 1) * (test_array.shape[ii] - 1)
                          for ii in range(2)]
         val8_1 = helpers.wu_sum(test_array, random_points[0], random_points[1])
         val8_2 = helpers.wu_sum(test_array, random_points[1], random_points[0])
