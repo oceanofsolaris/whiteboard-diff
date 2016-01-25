@@ -15,33 +15,6 @@ radon_transform = lambda image: radon(image, circle=False)
 gaussian_blur = lambda image, width: cv2.GaussianBlur(image, (width, width), 1)
 
 
-def sino_to_line(angle, offset, shape):
-    middle = np.array([shape[1] / 2, shape[0] / 2])
-    max_offset = np.sqrt(2) * np.max(shape)
-    offset_to_middle = offset - (max_offset / 2)
-    phi = angle / 180 * np.pi
-    offset_dir_x = np.cos(phi)
-    offset_dir_y = -np.sin(phi)
-    offset_v = np.array([offset_dir_x * offset_to_middle, offset_dir_y * offset_to_middle])
-    point_of_line = middle + offset_v
-    return [point_of_line, point_of_line + 20 * np.array([offset_dir_y, -offset_dir_x])]
-
-
-def line_to_sino(line, shape):
-    (x0, y0) = line[0]
-    (x1, y1) = line[1]
-    angle = np.arctan2(x1 - x0, y1 - y0)
-    angle = angle % np.pi
-    normal = np.array([np.cos(angle), -np.sin(angle)])
-    middle = np.array([shape[1] / 2, shape[0] / 2])
-    dist = np.sum((line[0] - middle) * normal)
-
-    max_offset = np.sqrt(2) * np.max(shape)
-    return_offset = dist + max_offset / 2
-    assert(return_offset < max_offset)
-    return (angle * 180.0 / np.pi, return_offset)
-
-
 def auto_canny(image, sigma=0.33):
     median = np.median(image)
     lower_threshold = int(max(0, 1.0 - sigma) * median)
@@ -63,7 +36,7 @@ def poor_mans_sino(contour_image):
     (_, cnts, _) = cv2.findContours(contour_image.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_TC89_L1)
     for cnt in cnts:
         for (a, b) in helpers.get_pairs(iter(cnt)):
-            (angle, offset) = line_to_sino([a[0], b[0]], orig_shape)
+            (angle, offset) = helpers.line_to_sino([a[0], b[0]], orig_shape)
             (angle_r, offset_r) = [int(np.floor(item)) for item in (angle, offset)]
             sino[offset_r, angle_r] += np.sqrt(np.sum((a - b) ** 2))
     return sino
@@ -88,7 +61,6 @@ def dilate(A, width):
 
 def get_peaks(A, width=5):
     flat = dilate(A, width)
-    print(A.shape, flat.shape)
     peaks = np.transpose(np.nonzero((flat == A) * A))
     vals = [A[x, y] for (x, y) in peaks]
     return peaks[np.argsort(vals)][::-1], np.sort(vals)[::-1]

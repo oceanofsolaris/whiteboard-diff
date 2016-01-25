@@ -136,17 +136,18 @@ def find_intersection(line1, line2):
         # formulas would produce nasty warnings
         return None
     # Small derivation of the used formula:
-    # a * x + b * y = c
-    # a = (c[0] - b * y[0]) / x[0]
-    # b = (c[1] - a * x[1]) / y[1]
-    # b = (c[1] - (c[0] - b * y[0]) / x[0] * x[1]) / y[1]
-    # b * (1 - y[0] / x[0] * x[1] / y[1]) = c[1] / y[1] - c[0] * x[1] / x[0] / y[1]
-    # Silence 'division by zero' errors
-    old_err = np.geterr()['divide']
-    np.seterr(divide='ignore')
+    #  a * x + b * y = c
+    #  a = (c[0] - b * y[0]) / x[0]
+    #  b = (c[1] - a * x[1]) / y[1]
+    #  b = (c[1] - (c[0] - b * y[0]) / x[0] * x[1]) / y[1]
+    #  b * (1 - y[0] / x[0] * x[1] / y[1]) = c[1] / y[1] - c[0] * x[1] / x[0] / y[1]
+    # Silence 'division by zero' and 'invalid value' errors, since
+    # these result in NaN or Inf anyways
+    old_err = {a:np.geterr()[a] for a in ['divide', 'invalid']}
+    np.seterr(divide='ignore', invalid='ignore')
     b = (c[1] / y[1] - c[0] * x[1] / x[0] / y[1]) / (1 - y[0] / x[0] * x[1] / y[1])
     a = (c[0] - b * y[0]) / x[0]
-    np.seterr(divide=old_err)
+    np.seterr(**old_err)
     return np.array(line1[0] + a * (line1[1] - line1[0])) \
         if not np.any([np.isinf(coeff) or np.isnan(coeff) for coeff in [a, b]]) else None
 
@@ -166,8 +167,7 @@ def order_points(points):
 
 
 def get_corners(lines):
-    """Find the corners of a rectangle given by four lines. Probably
-    crashes if two lines are exactly parallel."""
+    """Find the corners of a rectangle given by four lines."""
     # How to find the corners of a rectangle?
     # Idea: find two opposite sides first.
     #       These can be defined in the following way: When starting
@@ -182,7 +182,7 @@ def get_corners(lines):
                              for jj in range(ii + 1, len(lines))])
                  for ii in range(len(lines))]
     if np.any([len(p) > 1 for p in parallels]):
-        return None
+        return (None, None)
     par_lines = np.argwhere([len(p) > 0 for p in parallels])
     if len(par_lines) > 0:
         l1 = par_lines[0, 0]
@@ -201,6 +201,8 @@ def get_corners(lines):
         rest = otherlines.copy()
         del rest[ii]
         if inter is None:
+            # The two lines are parallel and thus have to be opposite
+            # in the rectangle
             break
         inters1 = [inter] + find_intersections(l, rest)
         inters2 = [inter] + find_intersections(ol, rest)
@@ -248,3 +250,30 @@ def get_pairs(l):
             fst = snd
     except StopIteration:
         pass
+
+
+def sino_to_line(angle, offset, shape):
+    middle = np.array([shape[1] / 2, shape[0] / 2])
+    max_offset = np.sqrt(2) * np.max(shape)
+    offset_to_middle = offset - (max_offset / 2)
+    phi = angle / 180 * np.pi
+    offset_dir_x = np.cos(phi)
+    offset_dir_y = -np.sin(phi)
+    offset_v = np.array([offset_dir_x * offset_to_middle, offset_dir_y * offset_to_middle])
+    point_of_line = middle + offset_v
+    return [point_of_line, point_of_line + 20 * np.array([offset_dir_y, -offset_dir_x])]
+
+
+def line_to_sino(line, shape):
+    (x0, y0) = line[0]
+    (x1, y1) = line[1]
+    angle = np.arctan2(x1 - x0, y1 - y0)
+    angle = angle % np.pi
+    normal = np.array([np.cos(angle), -np.sin(angle)])
+    middle = np.array([shape[1] / 2, shape[0] / 2])
+    dist = np.sum((line[0] - middle) * normal)
+
+    max_offset = np.sqrt(2) * np.max(shape)
+    return_offset = dist + max_offset / 2
+    assert(return_offset < max_offset)
+    return (angle * 180.0 / np.pi, return_offset)

@@ -88,34 +88,62 @@ class test_helpers(unittest.TestCase):
         val_3_c = np.array([0, 0])
         self.assertTrue(np.sum(np.abs((val_3_f - val_3_c))) < 1e-13)
 
-        line_1 = np.random.rand(2, 2)
-        line_2 = np.random.rand(2, 2)
-        val_4_1 = helpers.find_intersection(line_1, line_2)
-        val_4_2 = helpers.find_intersection(line_2, line_1)
-        self.assertTrue(np.sum(np.abs((val_4_1 - val_4_2))) < 1e-13)
+        # The intersection_point should not depend on the order of the
+        # two lines
+        line_1_1 = np.random.rand(2, 2)
+        line_1_2 = np.random.rand(2, 2)
+        val_4_1 = helpers.find_intersection(line_1_1, line_1_2)
+        val_4_2 = helpers.find_intersection(line_1_2, line_1_1)
+        self.assertTrue(np.sum(np.abs(val_4_1 - val_4_2)) < 1e-13)
+
+        # If two lines contain a common point, it has to be the
+        # intersection point (barring that the other point is exactly
+        # the same...which should never happen if it is choosen
+        # randomly)
+        line_2_1 = np.random.rand(2, 2)
+        line_2_2 = np.random.rand(2, 2)
+        line_2_2[1, :] = line_2_1[1, :]
+        val_5 = helpers.find_intersection(line_2_1, line_2_2)
+        self.assertTrue(np.sum(np.abs(val_5 - line_2_1[1, :])) < 1e-13)
 
     def test_get_corners(self):
         [val_1, l_s] = helpers.get_corners([np.array(a) for a in
-                                     [[[0, 0], [0, 1.1]],
-                                      [[0, 1.1], [1, 1]],
-                                      [[1, 1], [1.1, 0]],
-                                      [[1.1, 0], [0, 0]]]])
+                                            [[[0, 0], [0, 1.1]],
+                                             [[0, 1.1], [1, 1]],
+                                             [[1, 1], [1.1, 0]],
+                                            [[1.1, 0], [0, 0]]]])
         corners_c_1 = [[0, 0], [1.1, 0], [1, 1], [0, 1.1]]
         self.assertTrue(helpers.points_match(val_1, corners_c_1, tol=1e-13))
 
         [val_2, l_s] = helpers.get_corners([np.array(a) for a in
-                                     [[[0, 0], [0, 1]],
-                                      [[0, 1], [1, 1]],
-                                      [[1, 1], [1, 0]],
-                                      [[1, 0], [0, 0]]]])
+                                            [[[0, 0], [0, 1]],
+                                             [[0, 1], [1, 1]],
+                                             [[1, 1], [1, 0]],
+                                             [[1, 0], [0, 0]]]])
         corners_c_2 = [[0, 0], [1, 0], [1, 1], [0, 1]]
         self.assertTrue(helpers.points_match(val_2, corners_c_2, tol=1e-13))
+
+        [val_3, l_s] = helpers.get_corners([np.array(a) for a in
+                                            [[[0, 1], [1, 0]],
+                                             [[8, 2], [2, 1]],
+                                             [[0, 1], [1, 0]],
+                                             [[3, 4], [4, 3]]]])
+        self.assertIsNone(val_3)
 
     def test_get_pairs(self):
         l = [1, 2, 3, 4]
         val_f = list(helpers.get_pairs(iter(l)))
         val_c = [(1, 2), (2, 3), (3, 4)]
         self.assertEqual(val_f, val_c)
+
+    def test_sino_line_conversions(self):
+        shape = [int(a) for a in (np.random.rand(2) * 2000)]
+        for nn in range(180):
+            (phi, offset) = np.random.rand(2) * \
+                            np.array([180, max(shape) * np.sqrt(2)])
+            (phi_r, offset_r) = helpers.line_to_sino(helpers.sino_to_line(phi, offset, shape), shape)
+            self.assertAlmostEqual(phi_r, phi, delta=10 * 1e-13)
+            self.assertAlmostEqual(offset_r, offset, delta=10 * 1e-13)
 
 
 class test_rectangle_finder(unittest.TestCase):
@@ -135,16 +163,9 @@ class test_rectangle_finder(unittest.TestCase):
     def test_poor_mans_sino(self):
         tst = rf.poor_mans_sino(self.contours)
 
-    def test_sine_conversion(self):
-        shape = (500, 800)
-        max_offset = np.sqrt(2) * np.max(shape)
-        (angle, offset) = np.random.rand(2) * np.array([180, max_offset])
-
-        line = rf.sino_to_line(angle, offset, shape)
-        (s_angle, s_offset) = rf.line_to_sino(line, shape)
-
-        self.assertAlmostEqual(s_angle, angle)
-        self.assertAlmostEqual(s_offset, offset)
 
 if __name__ == "__main__":
-    unittest.main()
+    run_all_tests = True
+    defaultTest  = None if run_all_tests else \
+                   ['test_helpers']
+    unittest.main(defaultTest=defaultTest)
