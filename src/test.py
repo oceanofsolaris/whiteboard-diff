@@ -176,7 +176,14 @@ class test_rectangle_finder(unittest.TestCase):
         pass
 
     def test_poor_mans_sino(self):
-        tst = rf.poor_mans_sino(self.contours)
+        # Check whether both sino methods result in similar enough peaks
+        radon_poor = rf.poor_mans_sino(self.contours)
+
+        peaks_full, v_f = rf.get_blurred_peaks(self.radon, width=5)
+        peaks_poor, v_p = rf.get_blurred_peaks(radon_poor, width=5)
+
+        self.assertTrue(helpers.points_contained(peaks_full[0:6], peaks_poor[0:20], 7))
+        self.assertTrue(helpers.points_contained(peaks_poor[0:6], peaks_full[0:20], 7))
 
 
 if __name__ == "__main__":
