@@ -90,12 +90,15 @@ def wu_sum(array, p1, p2, count=False):
         if fst_offset < 0:
             fst_offset += 1
             fst_y0 -= dir
-        if switch_dim:
-            s += (array[fst_y0, proper_x0 - 1] * (1 - fst_offset) +
-                  array[fst_y0 + dir, proper_x0 - 1] * fst_offset) * weight_first
-        else:
-            s += (array[proper_x0 - 1, fst_y0] * (1 - fst_offset) +
-                  array[proper_x0 - 1, fst_y0 + dir] * fst_offset) * weight_first
+        try:
+            if switch_dim:
+                s += (array[fst_y0, proper_x0 - 1] * (1 - fst_offset) +
+                      array[fst_y0 + dir, proper_x0 - 1] * fst_offset) * weight_first
+            else:
+                s += (array[proper_x0 - 1, fst_y0] * (1 - fst_offset) +
+                      array[proper_x0 - 1, fst_y0 + dir] * fst_offset) * weight_first
+        except IndexError:
+            pass
 
     if weight_last != 0.0:
         lst_offset = np.abs(proper_y1 - y1) + dy_by_dx * (1 - weight_last)
@@ -103,12 +106,16 @@ def wu_sum(array, p1, p2, count=False):
         if lst_offset > 1:
             lst_offset -= 1
             proper_y1 += dir
-        if switch_dim:
-            s += (array[proper_y1, proper_x1 + 1] * (1 - lst_offset) +
-                  array[proper_y1 + dir, proper_x1 + 1] * lst_offset) * weight_last
-        else:
-            s += (array[proper_x1 + 1, proper_y1] * (1 - lst_offset) +
-                  array[proper_x1 + 1, proper_y1 + dir] * lst_offset) * weight_last
+        try:
+            if switch_dim:
+                s += (array[proper_y1, proper_x1 + 1] * (1 - lst_offset) +
+                      array[proper_y1 + dir, proper_x1 + 1] * lst_offset) * weight_last
+            else:
+                s += (array[proper_x1 + 1, proper_y1] * (1 - lst_offset) +
+                      array[proper_x1 + 1, proper_y1 + dir] * lst_offset) * weight_last
+        except IndexError:
+            pass
+
 
     cur_offset = np.abs(proper_y0 - y0) + dy_by_dx * weight_first
     cur_y = proper_y0
@@ -116,25 +123,24 @@ def wu_sum(array, p1, p2, count=False):
     x1 = proper_x1
 
     tmp_n = 0
-    try:
-        for (ll, cur_x) in enumerate(range(x0, x1 + 1)):
-            a = 0
-            if cur_offset > 1:
-                cur_offset -= 1
-                cur_y += dir
+    for (ll, cur_x) in enumerate(range(x0, x1 + 1)):
+        a = 0
+        if cur_offset > 1:
+            cur_offset -= 1
+            cur_y += dir
+        try:
             if switch_dim:
                 a = array[cur_y, cur_x] * (1 - cur_offset) + \
                     array[cur_y + dir, cur_x] * cur_offset
             else:
                 a = array[cur_x, cur_y] * (1 - cur_offset) + \
                     array[cur_x, cur_y + dir] * cur_offset
-            if a != 0.0:
-                tmp_n += 1
-            s += a
-            cur_offset += dy_by_dx
-
-    except IndexError:
-        print("IndexError:", cur_x, cur_y, p1, p2, switch_dim, array.shape, s)
+        except IndexError:
+            pass
+        if a != 0.0:
+            tmp_n += 1
+        s += a
+        cur_offset += dy_by_dx
 
     return tmp_n if count else s
 
