@@ -223,6 +223,16 @@ class test_rectangle_finder(unittest.TestCase):
         self.assertTrue(helpers.points_contained(peaks_full[0:6], peaks_poor[0:20], 7))
         self.assertTrue(helpers.points_contained(peaks_poor[0:6], peaks_full[0:20], 7))
 
+    def test_find_rectangle(self):
+        rectangle = rf.find_rectangle(self.contours)
+        original_corners = np.array([[2512, 138],
+                                     [2556, 2362],
+                                     [511, 1792],
+                                     [436, 568]])
+        scaled_corners = original_corners / self.contour_ratio
+        print(rectangle)
+        print(scaled_corners)
+        self.assertTrue(helpers.points_match(rectangle, scaled_corners, 10 / self.contour_ratio))
 
 if __name__ == "__main__":
     run_all_tests = True
