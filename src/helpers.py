@@ -145,6 +145,11 @@ def wu_sum(array, p1, p2, count=False):
     return tmp_n if count else s
 
 
+def wu_average(array, p1, p2, count=False):
+    line_length = np.sqrt(np.sum((np.array(p1) - np.array(p2)) ** 2))
+    return wu_sum(array, p1, p2, count) / line_length
+
+
 def find_intersection(line1, line2):
     """Find the intersection point between two lines. The lines are given
     by a pair of points on them."""
@@ -276,6 +281,17 @@ def get_pairs(l):
         pass
 
 
+def get_pairs_cycle(l):
+    fst = next(l)
+    veryfirst = fst
+    try:
+        while True:
+            snd = next(l)
+            yield(fst, snd)
+            fst = snd
+    except StopIteration:
+        yield (fst, veryfirst)
+
 def sino_to_line(angle, offset, shape):
     middle = np.array([shape[1] / 2, shape[0] / 2])
     max_offset = np.sqrt(2) * np.max(shape)
@@ -301,3 +317,53 @@ def line_to_sino(line, shape):
     return_offset = dist + max_offset / 2
     assert(return_offset < max_offset)
     return (angle * 180.0 / np.pi, return_offset)
+
+
+def in_bucket(coords, bucket_size):
+    """This returns true if the 2d coords lie within the limits given by
+    bucket_size. The second dimension is assumed to be cyclic (it will
+    usually be the angle).
+
+    """
+    x_min = bucket_size[0][0]
+    x_max = bucket_size[0][1]
+    y_min = bucket_size[1][0]
+    y_max = bucket_size[1][1]
+    y_match = coords[0] < y_max and coords[0] > y_min
+    x_match = coords[1] < x_max and coords[1] > x_min if x_min < x_max else \
+              not (coords[1] > x_max and coords[1] < x_min)
+    return x_match and y_match
+
+
+def into_buckets(coord_list, bucket_sizes):
+    """Sorts the coords in the list into the buckets given by the bucket
+    sizes given by the bucket sizes. Uses in_bucket() to do
+    this. Preserves order.
+
+    """
+    buckets = [[]] * len(bucket_sizes)
+    for (ii, c) in enumerate(coord_list):
+        for (jj, b) in enumerate(bucket_sizes):
+            if in_bucket(c, b):
+                buckets[jj] = buckets[jj] + [ii]
+    return buckets
+
+
+def clamp_range(val, min_val, max_val):
+    return max(min_val, min(max_val, val))
+
+
+def clamp_sigmoid(val, min_val, max_val):
+    scaled = (val - min_val) / (max_val - min_val)
+    return clamp_range(scaled, 0, 1)
+
+
+def rectangle_area(rectangle_points):
+    """This function calculates the area of a rectangle. If it is given a
+    non-rectangle, it will fail though."""
+    points = [np.array(p) for p in rectangle_points]
+    area1 = np.cross(points[1] - points[0],
+                     points[2] - points[1])
+    area2 = np.cross(points[2] - points[3],
+                     points[3] - points[0])
+    return (abs(area1) + abs(area2)) / 2

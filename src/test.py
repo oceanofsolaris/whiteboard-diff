@@ -151,6 +151,12 @@ class test_helpers(unittest.TestCase):
         val_c = [(1, 2), (2, 3), (3, 4)]
         self.assertEqual(val_f, val_c)
 
+    def test_get_pairs_cycle(self):
+        l = [1, 2, 3, 4]
+        val_f = list(helpers.get_pairs_cycle(iter(l)))
+        val_c = [(1, 2), (2, 3), (3, 4), (4, 1)]
+        self.assertEqual(val_f, val_c)
+
     def test_sino_line_conversions(self):
         shape = [int(a) for a in (np.random.rand(2) * 2000)]
         for nn in range(180):
@@ -160,12 +166,44 @@ class test_helpers(unittest.TestCase):
             self.assertAlmostEqual(phi_r, phi, delta=10 * 1e-13)
             self.assertAlmostEqual(offset_r, offset, delta=10 * 1e-13)
 
+    def test_rectangle_area(self):
+        rectangle_points_1 = [[0, 0],
+                              [1, 1],
+                              [1, 2],
+                              [0, 1]]
+        val1_f = helpers.rectangle_area(rectangle_points_1)
+        val1_c = 1.0
+        self.assertAlmostEqual(val1_f, val1_c, delta=1e-13)
+
+        rectangle_points_2 = [[0, 0],
+                              [1, 0],
+                              [1, 1],
+                              [0, 1]]
+        val2_f = helpers.rectangle_area(rectangle_points_2)
+        val2_c = 1.0
+        self.assertAlmostEqual(val2_f, val2_c, delta=1e-13)
+
+        rectangle_points_3 = [[0, 1],
+                              [1, 2],
+                              [1, 1],
+                              [0, 0]]
+        val3_f = helpers.rectangle_area(rectangle_points_3)
+        val3_c = val1_c
+        self.assertAlmostEqual(val3_f, val3_c, delta=1e-13)
+
+    def test_clamp_sigmoid(self):
+        val1_f = helpers.clamp_sigmoid(1.7, 1.0, 2.0)
+        self.assertAlmostEqual(val1_f, 0.7, delta=1e-13)
+
+        val2_f = helpers.clamp_sigmoid(1.7, 1.5, 2.0)
+        self.assertAlmostEqual(val2_f, 0.4, delta=1e-13)
+
 
 class test_rectangle_finder(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.sample_image = rf.loadimage('../test_whiteboards/cellphone_samples/whiteboard_skewed.jpg')
-        (self.contours, ratio) = rf.get_small_edge(self.sample_image)
+        (self.contours, self.contour_ratio) = rf.get_small_edge(self.sample_image)
         self.radon = rf.radon_transform(self.contours)
         pass
 
