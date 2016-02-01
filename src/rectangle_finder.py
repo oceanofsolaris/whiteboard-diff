@@ -37,7 +37,7 @@ def poor_mans_sino(contour_image):
     (_, cnts, _) = cv2.findContours(contour_image.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_TC89_L1)
     for cnt in cnts:
         for (a, b) in helpers.get_pairs(iter(cnt)):
-            (angle, offset) = helpers.line_to_sino([a[0], b[0]], orig_shape)
+            (offset, angle) = helpers.line_to_sino([a[0], b[0]], orig_shape)
             (angle_r, offset_r) = [int(np.floor(item)) for item in (angle, offset)]
             sino[offset_r, angle_r] += np.sqrt(np.sum((a - b) ** 2))
     return sino

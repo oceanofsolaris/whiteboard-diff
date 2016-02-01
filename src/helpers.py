@@ -292,7 +292,8 @@ def get_pairs_cycle(l):
     except StopIteration:
         yield (fst, veryfirst)
 
-def sino_to_line(angle, offset, shape):
+
+def sino_to_line(offset, angle, shape):
     middle = np.array([shape[1] / 2, shape[0] / 2])
     max_offset = np.sqrt(2) * np.max(shape)
     offset_to_middle = offset - (max_offset / 2)
@@ -316,7 +317,7 @@ def line_to_sino(line, shape):
     max_offset = np.sqrt(2) * np.max(shape)
     return_offset = dist + max_offset / 2
     assert(return_offset < max_offset)
-    return (angle * 180.0 / np.pi, return_offset)
+    return (return_offset, angle * 180.0 / np.pi)
 
 
 def in_bucket(coords, bucket_size):

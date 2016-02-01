@@ -165,6 +165,8 @@ class test_helpers(unittest.TestCase):
             (phi_r, offset_r) = helpers.line_to_sino(helpers.sino_to_line(phi, offset, shape), shape)
             self.assertAlmostEqual(phi_r, phi, delta=10 * 1e-13)
             self.assertAlmostEqual(offset_r, offset, delta=10 * 1e-13)
+        # We should definitely test some line to sino transformations
+        # by hand as well
 
     def test_rectangle_area(self):
         rectangle_points_1 = [[0, 0],
