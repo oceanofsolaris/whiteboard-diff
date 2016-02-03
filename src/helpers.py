@@ -23,7 +23,7 @@ def points_match(pA, pB, tol=1):
         if euclid_dists[best_match] > tolSq:
             return False
         else:
-            pB[best_match] = np.array([np.NaN, np.NaN])
+            pB[best_match] = np.array([np.Inf, np.Inf])
     return True
 
 
