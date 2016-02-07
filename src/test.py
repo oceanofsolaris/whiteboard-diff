@@ -164,7 +164,7 @@ class test_helpers(unittest.TestCase):
         for nn in range(180):
             (phi, offset) = np.random.rand(2) * \
                             np.array([180, max(shape) * np.sqrt(2)])
-            (phi_r, offset_r) = helpers.line_to_sino(helpers.sino_to_line(phi, offset, shape), shape)
+            (offset_r, phi_r) = helpers.line_to_sino(helpers.sino_to_line(offset, phi, shape), shape)
             self.assertAlmostEqual(phi_r, phi, delta=10 * 1e-13)
             self.assertAlmostEqual(offset_r, offset, delta=10 * 1e-13)
         # We should definitely test some line to sino transformations
