@@ -83,24 +83,27 @@ def get_blurred_peaks(A, width=5, blurwidth=5):
     return get_peaks(A_b, width)
 
 
-def line_quality(l, contour_image):
-    quality = helpers.wu_average(contour_image, l[0], l[1], count=False)
+def line_quality(l, contour_image, width=3, debug=False):
+    quality = helpers.wu_average(contour_image, l[0], l[1], count=True, width=width, debug=debug)
     return quality
 
 
-def rectangle_quality(rectangle, contour_image, cutoffs=(0.4, 0.8)):
+def rectangle_quality(rectangle, contour_image, cutoffs=(0.4, 0.95), debug=False):
     lines = helpers.get_pairs_cycle(iter(rectangle))
     # TODO: test for good cutoff values (maybe make these more dynamic
     lower_cutoff = cutoffs[0]
     upper_cutoff = cutoffs[1]
     sigma = lambda x: helpers.clamp_sigmoid(x, lower_cutoff, upper_cutoff)
-    line_qualities_raw = [line_quality(l, contour_image) for l in lines]
+    line_qualities_raw = [line_quality(l, contour_image, 5, debug)
+                          for l in lines]
     line_qualities = [sigma(q) for q in line_qualities_raw]
-    # print(rectangle)
-    # print(line_qualities_raw)
-    # print(line_qualities)
     area = helpers.rectangle_area(rectangle)
     quality = np.min(line_qualities) * area
+    if debug:
+        print(rectangle)
+        print(line_qualities)
+        print(line_qualities_raw)
+        print(area, quality)
     return quality
 
 
@@ -108,15 +111,16 @@ def find_rectangle(contour_image):
     sino = poor_mans_sino(contour_image)
     c_shape = contour_image.shape
     candidates, c_vals = get_blurred_peaks(sino)
-    candidate_lines = [helpers.sino_to_line(c[0], c[1], c_shape) for c in candidates]
+    candidate_lines = [helpers.sino_to_line(c[0], c[1], c_shape)
+                       for c in candidates]
     middle = sino.shape[0] / 2.0
     bucket_areas = [[[60, 120], [middle * 1.05, middle * 2]],
-                    [[60, 120], [0, middle * 0.7]],
+                    [[60, 120], [0, middle * 0.95]],
                     [[-1, 30], [middle * 1.05, middle * 2]],
-                    [[-1, 30], [0, middle * 0.7]]]
+                    [[-1, 30], [0, middle * 0.95]]]
     candidate_buckets = helpers.into_buckets(candidates, bucket_areas)
     bucket_depths = [len(b) - 1 for b in candidate_buckets]
-    max_evals = 30
+    max_evals = 50
     rectangles = []
     for (ii, c) in it.islice(enumerate(helpers.allcombinations(bucket_depths)), max_evals):
         rectangle_candidate = [candidate_buckets[ll][c[ll]]
@@ -126,4 +130,4 @@ def find_rectangle(contour_image):
         quality = rectangle_quality(corners, contour_image)
         rectangles.append((quality, corners))
     rectangles.sort(key=lambda x:x[0])
-    return rectangles[0][1]
+    return rectangles[-1][1]

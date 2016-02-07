@@ -1,5 +1,5 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def points_match(pA, pB, tol=1):
     """Check whether two arrays of points contain (approximately) the same
@@ -57,9 +57,15 @@ def wu_sort_points(p1, p2, dim):
     return (p1, p2, switch_dim)
 
 
-def wu_sum(array, p1, p2, count=False):
-    """This function is messy, slow and does not do proper bounds-checking.
-    Refactor (maybe in Cython) at some point."""
+def wu_sum(array, p1, p2, count=False, width=0, debug=False):
+    """Sum over the entries in array tha lie on the line between p1 and
+    p2. Uses cheap aliasing for this sum.  Width changes this into a
+    'fat' line that covers 1+width pixels. The algorithm is 'cheap'
+    and not always completely accurate.
+    This function is messy and slow. Refactor (maybe in Cython) at some
+    point.
+
+    """
     (p1, p2, switch_dim) = wu_sort_points(p1, p2, array.shape)
     s = 0
     (x0, y0) = p1
@@ -130,24 +136,36 @@ def wu_sum(array, p1, p2, count=False):
             cur_y += dir
         try:
             if switch_dim:
-                a = array[cur_y, cur_x] * (1 - cur_offset) + \
-                    array[cur_y + dir, cur_x] * cur_offset
+                if width == 0:
+                    a = array[cur_y, cur_x] * (1 - cur_offset) + \
+                        array[cur_y + dir, cur_x] * cur_offset
+                else:
+                    a = np.sum(array[cur_y - width: cur_y + width + 1, cur_x])
             else:
-                a = array[cur_x, cur_y] * (1 - cur_offset) + \
-                    array[cur_x, cur_y + dir] * cur_offset
+                if width == 0:
+                    a = array[cur_x, cur_y] * (1 - cur_offset) + \
+                        array[cur_x, cur_y + dir] * cur_offset
+                else:
+                    a = np.sum(array[cur_x, cur_y - width: cur_y + width + 1])
         except IndexError:
             pass
         if a != 0.0:
             tmp_n += 1
+        if debug and a == 0.0:
+            if switch_dim:
+                plt.scatter([cur_x], [cur_y])
+            else:
+                plt.scatter([cur_y], [cur_x])
         s += a
         cur_offset += dy_by_dx
 
     return tmp_n if count else s
 
 
-def wu_average(array, p1, p2, count=False):
+def wu_average(array, p1, p2, count=False, width=0, debug=False):
     line_length = np.sqrt(np.sum((np.array(p1) - np.array(p2)) ** 2))
-    return wu_sum(array, p1, p2, count) / line_length
+    val = wu_sum(array, p1, p2, count, width, debug=debug)
+    return val / line_length
 
 
 def find_intersection(line1, line2):

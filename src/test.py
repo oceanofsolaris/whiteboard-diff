@@ -229,14 +229,13 @@ class test_rectangle_finder(unittest.TestCase):
 
     def test_find_rectangle(self):
         rectangle = rf.find_rectangle(self.contours)
-        original_corners = np.array([[2512, 138],
-                                     [2556, 2362],
-                                     [511, 1792],
-                                     [436, 568]])
+        original_corners = np.array([[138, 2512],
+                                     [2362, 2556],
+                                     [1792, 511],
+                                     [568, 436]])
         scaled_corners = original_corners / self.contour_ratio
-        print(rectangle)
-        print(scaled_corners)
-        self.assertTrue(helpers.points_match(rectangle, scaled_corners, 10 / self.contour_ratio))
+        self.assertTrue(helpers.points_match(rectangle, scaled_corners,
+                                             80 / self.contour_ratio))
 
 if __name__ == "__main__":
     run_all_tests = True
