@@ -294,26 +294,25 @@ def get_pairs_cycle(l):
 
 
 def sino_to_line(offset, angle, shape):
-    middle = np.array([shape[1] / 2, shape[0] / 2])
+    middle = np.array([shape[0] / 2, shape[1] / 2])
     max_offset = np.sqrt(2) * np.max(shape)
     offset_to_middle = offset - (max_offset / 2)
     phi = angle / 180 * np.pi
-    offset_dir_x = np.cos(phi)
-    offset_dir_y = -np.sin(phi)
+    offset_dir_x = -np.sin(phi)
+    offset_dir_y = np.cos(phi)
     offset_v = np.array([offset_dir_x * offset_to_middle, offset_dir_y * offset_to_middle])
     point_of_line = middle + offset_v
     return [point_of_line, point_of_line + 20 * np.array([offset_dir_y, -offset_dir_x])]
 
 
 def line_to_sino(line, shape):
-    (x0, y0) = line[0]
-    (x1, y1) = line[1]
+    (y0, x0) = line[0]
+    (y1, x1) = line[1]
     angle = np.arctan2(x1 - x0, y1 - y0)
     angle = angle % np.pi
-    normal = np.array([np.cos(angle), -np.sin(angle)])
-    middle = np.array([shape[1] / 2, shape[0] / 2])
+    normal = np.array([-np.sin(angle), np.cos(angle)])
+    middle = np.array([shape[0] / 2, shape[1] / 2])
     dist = np.sum((line[0] - middle) * normal)
-
     max_offset = np.sqrt(2) * np.max(shape)
     return_offset = dist + max_offset / 2
     assert(return_offset < max_offset)
