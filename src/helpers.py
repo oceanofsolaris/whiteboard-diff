@@ -67,7 +67,9 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
 
     """
     (p1, p2, switch_dim) = wu_sort_points(p1, p2, array.shape)
-    s = 0
+    max_x = array.shape[1] if switch_dim else array.shape[0]
+    max_y = array.shape[0] if switch_dim else array.shape[1]
+    s = 0.0
     (x0, y0) = p1
     (x1, y1) = p2
     dx = x1 - x0
@@ -122,19 +124,16 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
         except IndexError:
             pass
 
-
     cur_offset = np.abs(proper_y0 - y0) + dy_by_dx * weight_first
     cur_y = proper_y0
-    x0 = proper_x0
-    x1 = proper_x1
 
     tmp_n = 0
-    for (ll, cur_x) in enumerate(range(x0, x1 + 1)):
+    for (ll, cur_x) in enumerate(range(proper_x0, proper_x1 + 1)):
         a = 0
         if cur_offset > 1:
             cur_offset -= 1
             cur_y += dir
-        try:
+        if max(0, - dir) <= cur_y < min(max_y, max_y - dir) and 0 <= cur_x < max_x:
             if switch_dim:
                 if width == 0:
                     a = array[cur_y, cur_x] * (1 - cur_offset) + \
@@ -147,16 +146,15 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
                         array[cur_x, cur_y + dir] * cur_offset
                 else:
                     a = np.sum(array[cur_x, cur_y - width: cur_y + width + 1])
-        except IndexError:
-            pass
-        if a != 0.0:
-            tmp_n += 1
-        if debug and a == 0.0:
-            if switch_dim:
-                plt.scatter([cur_x], [cur_y])
-            else:
-                plt.scatter([cur_y], [cur_x])
-        s += a
+            if a != 0.0:
+                tmp_n += 1
+            s += a
+
+            if debug and a == 0.0:
+                if switch_dim:
+                    plt.scatter([cur_x], [cur_y])
+                else:
+                    plt.scatter([cur_y], [cur_x])
         cur_offset += dy_by_dx
 
     return tmp_n if count else s
