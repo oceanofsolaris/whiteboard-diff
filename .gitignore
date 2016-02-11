@@ -1,0 +1,15 @@
+# Emacs autosaves
+*~
+*/#*#
+*/.#*
+
+# Compiled python modules
+*.pyc
+*.npy
+
+
+# C output (program as well as object files)
+*.o
+*.so
+*.ao
+*.out
