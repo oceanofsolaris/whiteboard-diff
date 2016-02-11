@@ -1,3 +1,5 @@
+import pyximport; pyximport.install()
+import cython_helpers
 import numpy as np
 import cv2
 import imutils
@@ -46,9 +48,10 @@ def poor_mans_sino(contour_image):
 
 
 def dilate(A, width):
-    "This function replaces every value in the 2D array by the maximum in"
-    "the region +- width."
-    # This function is slow as molasses. Rewrite in cython or so.
+    """This function replaces every value in the 2D array by the maximum in
+    the region +- width. This function is slow as molasses. Use the
+    cython implementation in cython_helpers instead.
+    """
     x_l = A.shape[0]
     y_l = A.shape[1]
     B = A.copy()
@@ -65,9 +68,8 @@ def dilate(A, width):
 def get_peaks(A, width=5):
     """Finds local peaks in a 2d-array. Peaks are the maximum in an area
     given by +-width.
-
     """
-    flat = dilate(A, width)
+    flat = cython_helpers.dilate(A, width)
     peaks = np.transpose(np.nonzero((flat == A) * A))
     vals = [A[x, y] for (x, y) in peaks]
     return peaks[np.argsort(vals)][::-1], np.sort(vals)[::-1]
@@ -77,14 +79,21 @@ def get_blurred_peaks(A, width=5, blurwidth=5):
     """Same as get_peaks(), but blurs the array first (using a gaussian
     blur of width blur_width). This is more reliable if the data is a
     bit noisy.
-
     """
     A_b = gaussian_blur(A, blurwidth)
     return get_peaks(A_b, width)
 
 
 def line_quality(l, contour_image, width=3, debug=False):
-    quality = helpers.wu_average(contour_image, l[0], l[1], count=True, width=width, debug=debug)
+    if debug:
+        quality = helpers.wu_average(contour_image, l[0], l[1],
+                                     count=True, width=width, debug=debug)
+    else:
+        quality = cython_helpers.wu_average_cython(contour_image,
+                                                   l[0][0], l[0][1],
+                                                   l[1][0], l[1][1],
+                                                   count=True,
+                                                   width=width)
     return quality
 
 
