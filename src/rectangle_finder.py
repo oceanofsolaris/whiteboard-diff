@@ -116,7 +116,7 @@ def rectangle_quality(rectangle, contour_image, cutoffs=(0.4, 0.95), debug=False
     return quality
 
 
-def find_rectangle(contour_image):
+def find_rectangle(contour_image, max_evals=50):
     sino = poor_mans_sino(contour_image)
     c_shape = contour_image.shape
     candidates, c_vals = get_blurred_peaks(sino)
@@ -129,7 +129,6 @@ def find_rectangle(contour_image):
                     [[-1, 30], [0, middle * 0.95]]]
     candidate_buckets = helpers.into_buckets(candidates, bucket_areas)
     bucket_depths = [len(b) - 1 for b in candidate_buckets]
-    max_evals = 50
     rectangles = []
     for (ii, c) in it.islice(enumerate(helpers.allcombinations(bucket_depths)), max_evals):
         rectangle_candidate = [candidate_buckets[ll][c[ll]]
