@@ -182,25 +182,58 @@ def dilate(np.ndarray [np.float64_t, ndim=2] A, int width):
     cdef int x_l = A.shape[0]
     cdef int y_l = A.shape[1]
     cdef np.ndarray [np.float64_t, ndim=2] B = A.copy()
+    cdef np.ndarray [np.float64_t, ndim=2] C = B.copy()
     cdef int ii
     cdef int jj
+    cdef int xx
+    cdef int yy
 
     cdef int xrange_l = 0
     cdef int xrange_u = 0
     cdef int yrange_l = 0
     cdef int yrange_u = 0
     cdef double maxval = -np.Inf
-    
+    cdef int maxval_valid = 0
+
     for jj in range(y_l):
+        maxval = - np.Inf
+        maxval_valid = 0
         for ii in range(x_l):
-            maxval = - np.Inf
             xrange_l = max(ii - width, 0)
             xrange_u = min(ii + width, x_l)
+            if maxval_valid > 0:
+                if ii + width < x_l + 1 and \
+                   A[ii + width - 1, jj] > maxval:
+                    maxval = A[ii + width - 1, jj]
+                    maxval_valid = 2 * width
+                maxval_valid -= 1
+            else:
+                maxval = - np.Inf
+                for xx in range(xrange_l, xrange_u):
+                    if A[xx, jj] > maxval:
+                        maxval = A[xx, jj]
+                        maxval_valid = xx - ii + width
+            B[ii, jj] = maxval
+
+    for ii in range(x_l):
+        maxval = - np.Inf
+        maxval_valid = 0
+        for jj in range(y_l):
             yrange_l = max(jj - width, 0)
             yrange_u = min(jj + width, y_l)
-            for yy in range(yrange_l, yrange_u):
-                for xx in range(xrange_l, xrange_u):
-                    maxval = max(maxval, A[xx,yy])
-            B[ii, jj] = maxval
-    return B
+            if maxval_valid > 0:
+                if jj + width < y_l + 1 and \
+                   B[ii, jj + width - 1] > maxval:
+                    maxval = B[ii, jj + width - 1]
+                    maxval_valid = 2 * width
+                maxval_valid -= 1
+            else:
+                maxval = - np.Inf
+                for yy in range(yrange_l, yrange_u):
+                    if B[ii, yy] > maxval:
+                        maxval = B[ii, yy]
+                        maxval_valid = yy - jj + width
+            C[ii, jj] = maxval
+
+    return C
 
