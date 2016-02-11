@@ -269,6 +269,23 @@ class test_rectangle_finder(unittest.TestCase):
         self.assertTrue(helpers.points_match(rectangle, scaled_corners,
                                              80 / self.contour_ratio))
 
+    def dilate_compare(self, A, width):
+        val_p = rf.dilate(A, width)
+        val_c = cython_helpers.dilate(A, width)
+        self.assertTrue(np.all(val_p == val_c))
+
+    def test_dilate(self):
+        # Test that dilate behaves the same in the cython and the
+        # python implementation
+        test_array = np.random.random(size=(200, 200))
+        self.dilate_compare(test_array, width=5)
+        
+        # This is a shitty test. I should think of something
+        # better. For now it works fine though, since I kind of trust
+        # the python implementation to be correct and only use it to
+        # make sure the cython implementation stays correct during a
+        # rewrite
+
 if __name__ == "__main__":
     run_all_tests = True
     defaultTest  = None if run_all_tests else \
