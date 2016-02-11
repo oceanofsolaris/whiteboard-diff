@@ -69,6 +69,8 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
     (p1, p2, switch_dim) = wu_sort_points(p1, p2, array.shape)
     max_x = array.shape[1] if switch_dim else array.shape[0]
     max_y = array.shape[0] if switch_dim else array.shape[1]
+    min_x = 0
+    min_y = 0
     s = 0.0
     (x0, y0) = p1
     (x1, y1) = p2
@@ -87,11 +89,19 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
     if dir > 0:
         proper_y0 = int(np.floor(y0))
         proper_y1 = int(np.floor(y1))
+        if width == 0:
+            max_y -= 1
     else:
         proper_y0 = int(np.ceil(y0))
         proper_y1 = int(np.ceil(y1))
+        if width == 0:
+            min_y += 1
 
-    if weight_first != 0.0:
+    if width != 0:
+        min_y += width
+        max_y -= width
+
+    if weight_first != 0.0 and width == 0:
         fst_offset = np.abs(proper_y0 - y0) - dy_by_dx * (1 - weight_first)
         fst_y0 = proper_y0
         assert(fst_offset < 1)
@@ -108,7 +118,7 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
         except IndexError:
             pass
 
-    if weight_last != 0.0:
+    if weight_last != 0.0 and width == 0:
         lst_offset = np.abs(proper_y1 - y1) + dy_by_dx * (1 - weight_last)
         assert(lst_offset > 0)
         if lst_offset > 1:
@@ -133,7 +143,7 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
         if cur_offset > 1:
             cur_offset -= 1
             cur_y += dir
-        if max(0, - dir) <= cur_y < min(max_y, max_y - dir) and 0 <= cur_x < max_x:
+        if min_y <= cur_y < max_y and min_x <= cur_x < max_x:
             if switch_dim:
                 if width == 0:
                     a = array[cur_y, cur_x] * (1 - cur_offset) + \

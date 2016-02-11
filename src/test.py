@@ -42,8 +42,9 @@ class test_helpers_python_and_cython(unittest.TestCase):
 
     def test_wu_sum(self):
         """Test whether the wu-sum does what it is supposed to do."""
-        tol = 1e-13
-        test_array = np.random.random(size=(200, 200))
+        tol = 1e-11
+        dtype = np.uint8
+        test_array = (np.iinfo(dtype).max * np.random.random(size=(200, 200))).astype(dtype)
 
         # Test whether the cython implementation yields the same
         # results as the python implementation (we implicitly check
@@ -94,11 +95,11 @@ class test_helpers_python_and_cython(unittest.TestCase):
         # difference in the case of almost completely 45 degree lines
         val_x_l = self.wu_sum_compare(test_array, (10.1, 20.1), (110.1 + tol ,120.1))
         val_y_l = self.wu_sum_compare(test_array, (10.1, 20.1), (110.1 - tol, 120.1))
-        self.assertAlmostEqual(val_x_l, val_y_l, delta=10 * tol)
+        self.assertAlmostEqual(val_x_l, val_y_l, delta=255 * 10 * tol)
 
         val2_x_l = self.wu_sum_compare(test_array, (20.3, 10.3), (120.1, 110.1 + tol))
         val2_y_l = self.wu_sum_compare(test_array, (20.3, 10.3), (120.1, 110.1 - tol))
-        self.assertAlmostEqual(val2_x_l, val2_y_l, delta=10 * tol)
+        self.assertAlmostEqual(val2_x_l, val2_y_l, delta=255 * 10 * tol)
 
         # Test whether transposing the array and the summation range yields the same results
         random_points = [np.random.rand(2, 1) * (test_array.shape[ii] - 1)
@@ -115,6 +116,11 @@ class test_helpers_python_and_cython(unittest.TestCase):
         # consequences (points outside the array are not counted
         val9_1 = self.wu_sum_compare(test_array, (100, 0), (100, 100))
         val9_2 = self.wu_sum_compare(test_array, (100, -10), (100, 100))
+        self.assertAlmostEqual(val9_1, val9_2, delta=tol)
+
+        # Test that the cython implementation also correctly covers thick lines
+        self.wu_sum_compare(test_array, (10, 100), (20, 120), width=4)
+
 
     def test_find_intersection(self):
         val_1_f = helpers.find_intersection(np.array([[1, 0], [0, 1]]),
