@@ -5,6 +5,7 @@ import rectangle_finder as rf
 import unittest
 import numpy as np
 
+shortonly = True
 
 class test_helpers_python_and_cython(unittest.TestCase):
     def wu_sum_compare(self, array, p1, p2, count=False, width=0, debug=False):
@@ -240,7 +241,8 @@ class test_rectangle_finder(unittest.TestCase):
     def setUpClass(self):
         self.sample_image = rf.loadimage('../test_whiteboards/cellphone_samples/whiteboard_skewed.jpg')
         (self.contours, self.contour_ratio) = rf.get_small_edge(self.sample_image)
-        self.radon = rf.radon_transform(self.contours)
+        if not shortonly:
+            self.radon = rf.radon_transform(self.contours)
         pass
 
     def test_refine_line(self):
@@ -251,6 +253,8 @@ class test_rectangle_finder(unittest.TestCase):
 
     def test_poor_mans_sino(self):
         # Check whether both sino methods result in similar enough peaks
+        if shortonly:
+            return
         radon_poor = rf.poor_mans_sino(self.contours)
 
         peaks_full, v_f = rf.get_blurred_peaks(self.radon, width=5)
