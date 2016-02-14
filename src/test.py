@@ -4,6 +4,7 @@ import helpers
 import rectangle_finder as rf
 import unittest
 import numpy as np
+import itertools
 
 shortonly = True
 
@@ -122,7 +123,6 @@ class test_helpers_python_and_cython(unittest.TestCase):
         # Test that the cython implementation also correctly covers thick lines
         self.wu_sum_compare(test_array, (10, 100), (20, 120), width=4)
 
-
     def test_find_intersection(self):
         val_1_f = helpers.find_intersection(np.array([[1, 0], [0, 1]]),
                                             np.array([[0, 0], [2, 0]]))
@@ -156,20 +156,28 @@ class test_helpers_python_and_cython(unittest.TestCase):
         val_5 = helpers.find_intersection(line_2_1, line_2_2)
         self.assertTrue(np.sum(np.abs(val_5 - line_2_1[1, :])) < 1e-13)
 
+    def get_corners_permutations(self, lines):
+        ls_s = itertools.permutations(lines)
+        [val, _] = helpers.get_corners(next(ls_s))
+        for ls in ls_s:
+            [val_p, _] = helpers.get_corners(ls)
+            self.assertTrue(helpers.points_match(val, val_p, tol=1e-13))
+        return val
+
     def test_get_corners(self):
-        [val_1, l_s] = helpers.get_corners([np.array(a) for a in
-                                            [[[0, 0], [0, 1.1]],
-                                             [[0, 1.1], [1, 1]],
-                                             [[1, 1], [1.1, 0]],
-                                            [[1.1, 0], [0, 0]]]])
+        val_1 = self.get_corners_permutations([np.array(a) for a in
+                                               [[[0, 0], [0, 1.1]],
+                                                [[0, 1.1], [1, 1]],
+                                                [[1, 1], [1.1, 0]],
+                                                [[1.1, 0], [0, 0]]]])
         corners_c_1 = [[0, 0], [1.1, 0], [1, 1], [0, 1.1]]
         self.assertTrue(helpers.points_match(val_1, corners_c_1, tol=1e-13))
 
-        [val_2, l_s] = helpers.get_corners([np.array(a) for a in
-                                            [[[0, 0], [0, 1]],
-                                             [[0, 1], [1, 1]],
-                                             [[1, 1], [1, 0]],
-                                             [[1, 0], [0, 0]]]])
+        val_2 = self.get_corners_permutations([np.array(a) for a in
+                                               [[[0, 0], [0, 1]],
+                                                [[0, 1], [1, 1]],
+                                                [[1, 1], [1, 0]],
+                                                [[1, 0], [0, 0]]]])
         corners_c_2 = [[0, 0], [1, 0], [1, 1], [0, 1]]
         self.assertTrue(helpers.points_match(val_2, corners_c_2, tol=1e-13))
 

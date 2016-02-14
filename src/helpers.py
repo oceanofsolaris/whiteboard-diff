@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def points_match(pA, pB, tol=1):
     """Check whether two arrays of points contain (approximately) the same
     points. Two points are approximately the same if their distance is
@@ -261,7 +262,9 @@ def get_corners(lines):
             break
         inters1 = [inter] + find_intersections(l, rest)
         inters2 = [inter] + find_intersections(ol, rest)
-        if np.all(order_points(inters1) == order_points(inters2)):
+        o1 = order_points(inters1)
+        o2 = order_points(inters2)
+        if np.all(o1 == o2) and o1[0] == 0:
             # The two lines are opposite in the rectangle
             break
     lines = [l, rest[0], ol, rest[1]]
