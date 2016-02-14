@@ -1,6 +1,7 @@
 import pyximport; pyximport.install()
 import cython_helpers
 import numpy as np
+import scipy
 import cv2
 import imutils
 from skimage.transform import radon
@@ -137,5 +138,43 @@ def find_rectangle(contour_image, max_evals=50):
         corners, lines = helpers.get_corners(rect_lines)
         quality = rectangle_quality(corners, contour_image)
         rectangles.append((quality, corners))
-    rectangles.sort(key=lambda x:x[0])
+    rectangles.sort(key=lambda x: x[0])
     return rectangles[-1][1]
+
+
+def optimize_rectangle(rectangle, contour_image):
+    lines = helpers.get_pairs_cycle(iter(rectangle))
+    opt_lines = np.zeros((4, 2, 2), np.float64)
+    for (ii,line) in enumerate(lines):
+        opt_lines[ii, :, :] = optimize_line(line, contour_image, 10)
+    print(opt_lines)
+    return helpers.get_corners(opt_lines)[0]
+
+
+def optimize_line(endpoints, contour_image, max_offset):
+    coor_a = np.array(endpoints[0])
+    coor_b = np.array(endpoints[1])
+    x0, y0 = coor_a
+    x1, y1 = coor_b
+
+    angle = np.arctan2(x1 - x0, y1 - y0)
+    normal_vec = np.array([np.cos(angle), np.sin(angle)])
+
+    def opt_target(offsets):
+        x_a = coor_a + normal_vec * offsets[0]
+        x_b = coor_b + normal_vec * offsets[1]
+        return -cython_helpers.wu_sum(contour_image, x_a, x_b)
+
+    n_tries = 5
+    rands = np.random.random((n_tries, 2)) * 2 * max_offset - max_offset
+    results = [scipy.optimize.minimize(opt_target, rands[ii, :],
+                                       bounds=[[-max_offset, max_offset],
+                                               [-max_offset, max_offset]])
+               for ii in range(n_tries)]
+    vals = [res.fun for res in results]
+    print(vals, opt_target([0, 0]))
+    best = np.argmin(vals)
+    best_offsets = results[best].x
+
+    return np.array([coor_a + normal_vec * best_offsets[0],
+                     coor_b + normal_vec * best_offsets[1]])
