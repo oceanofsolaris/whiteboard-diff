@@ -107,7 +107,7 @@ def rectangle_quality(rectangle, contour_image, cutoffs=(0.4, 0.95), debug=False
     lower_cutoff = cutoffs[0]
     upper_cutoff = cutoffs[1]
     sigma = lambda x: helpers.clamp_sigmoid(x, lower_cutoff, upper_cutoff)
-    line_qualities_raw = [line_quality(l, contour_image, 5, debug)
+    line_qualities_raw = [line_quality(l, contour_image, 3, debug)
                           for l in lines]
     line_qualities = [sigma(q) for q in line_qualities_raw]
     area = helpers.rectangle_area(rectangle)
@@ -188,7 +188,7 @@ def get_rectangle_from_image(image):
     (contour_image, ratio) = get_small_edge(image)
     rectangle = find_rectangle(contour_image)
     rectangle = optimize_rectangle(rectangle, contour_image, size_small / 50)
-    (contour_large,_) = get_small_edge(image, target_height=image.shape[0])
+    (contour_large, _) = get_small_edge(image, target_height=image.shape[0])
     rectangle_large = [p * ratio for p in rectangle]
     rectangle_large = optimize_rectangle(rectangle_large, contour_large,
                                          image.shape[0] / 50)
