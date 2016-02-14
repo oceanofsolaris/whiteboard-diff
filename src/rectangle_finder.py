@@ -108,7 +108,7 @@ def rectangle_quality(rectangle, contour_image, cutoffs=(0.4, 0.95), debug=False
                           for l in lines]
     line_qualities = [sigma(q) for q in line_qualities_raw]
     area = helpers.rectangle_area(rectangle)
-    quality = np.sum(line_qualities) * np.min(line_qualities) * np.sqrt(area)
+    quality = np.sum(line_qualities) * np.min(line_qualities) * np.sqrt(np.sqrt(area))
     if debug:
         print(rectangle)
         print(line_qualities)
