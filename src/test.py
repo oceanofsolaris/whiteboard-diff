@@ -161,7 +161,10 @@ class test_helpers_python_and_cython(unittest.TestCase):
         [val, _] = helpers.get_corners(next(ls_s))
         for ls in ls_s:
             [val_p, _] = helpers.get_corners(ls)
-            self.assertTrue(helpers.points_match(val, val_p, tol=1e-13))
+            if val is None:
+                self.assertIsNone(val_p)
+            else:
+                self.assertTrue(helpers.points_match(val, val_p, tol=1e-13))
         return val
 
     def test_get_corners(self):
@@ -181,11 +184,11 @@ class test_helpers_python_and_cython(unittest.TestCase):
         corners_c_2 = [[0, 0], [1, 0], [1, 1], [0, 1]]
         self.assertTrue(helpers.points_match(val_2, corners_c_2, tol=1e-13))
 
-        [val_3, l_s] = helpers.get_corners([np.array(a) for a in
-                                            [[[0, 1], [1, 0]],
-                                             [[8, 2], [2, 1]],
-                                             [[0, 1], [1, 0]],
-                                             [[3, 4], [4, 3]]]])
+        val_3 = self.get_corners_permutations([np.array(a) for a in
+                                               [[[0, 1], [1, 0]],
+                                                [[8, 2], [2, 1]],
+                                                [[0, 1], [1, 0]],
+                                                [[3, 4], [4, 3]]]])
         self.assertIsNone(val_3)
 
     def test_get_pairs(self):
