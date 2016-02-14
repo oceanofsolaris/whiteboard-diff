@@ -182,3 +182,14 @@ def optimize_line(endpoints, contour_image, max_offset):
 
     return np.array([coor_a + normal_vec * best_offsets[0],
                      coor_b + normal_vec * best_offsets[1]])
+
+
+def get_rectangle_from_image(image):
+    (contour_image, ratio) = get_small_edge(image)
+    rectangle = find_rectangle(contour_image)
+    rectangle = optimize_rectangle(rectangle, contour_image, size_small / 50)
+    (contour_large,_) = get_small_edge(image, target_height=image.shape[0])
+    rectangle_large = [p * ratio for p in rectangle]
+    rectangle_large = optimize_rectangle(rectangle_large, contour_large,
+                                         image.shape[0] / 50)
+    return np.array(rectangle_large)
