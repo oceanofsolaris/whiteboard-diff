@@ -27,9 +27,12 @@ def auto_canny(image, sigma=0.33):
     return edged
 
 
-def get_small_edge(image):
-    ratio = image.shape[0] / size_small
-    image_res = imutils.resize(image, height=size_small)
+def get_small_edge(image, target_height=size_small):
+    ratio = image.shape[0] / target_height
+    if ratio != 1.0:
+        image_res = imutils.resize(image, height=target_height)
+    else:
+        image_res = image
     return [auto_canny(desaturate(image_res), sigma=0.5), ratio]
 
 
@@ -117,7 +120,7 @@ def rectangle_quality(rectangle, contour_image, cutoffs=(0.4, 0.95), debug=False
     return quality
 
 
-def find_rectangle(contour_image, max_evals=50):
+def find_rectangle(contour_image, max_evals=(4 ** 4)):
     sino = poor_mans_sino(contour_image)
     c_shape = contour_image.shape
     candidates, c_vals = get_blurred_peaks(sino)
@@ -142,12 +145,11 @@ def find_rectangle(contour_image, max_evals=50):
     return rectangles[-1][1]
 
 
-def optimize_rectangle(rectangle, contour_image):
+def optimize_rectangle(rectangle, contour_image, max_offset=10):
     lines = helpers.get_pairs_cycle(iter(rectangle))
     opt_lines = np.zeros((4, 2, 2), np.float64)
     for (ii,line) in enumerate(lines):
-        opt_lines[ii, :, :] = optimize_line(line, contour_image, 10)
-    print(opt_lines)
+        opt_lines[ii, :, :] = optimize_line(line, contour_image, max_offset)
     return helpers.get_corners(opt_lines)[0]
 
 
@@ -167,12 +169,14 @@ def optimize_line(endpoints, contour_image, max_offset):
 
     n_tries = 5
     rands = np.random.random((n_tries, 2)) * 2 * max_offset - max_offset
+    # Always have one try start at the initially estimated position
+    rands[0, :] = 0
     results = [scipy.optimize.minimize(opt_target, rands[ii, :],
                                        bounds=[[-max_offset, max_offset],
-                                               [-max_offset, max_offset]])
+                                               [-max_offset, max_offset]],
+                                       tol=1e-3)
                for ii in range(n_tries)]
     vals = [res.fun for res in results]
-    print(vals, opt_target([0, 0]))
     best = np.argmin(vals)
     best_offsets = results[best].x
 
