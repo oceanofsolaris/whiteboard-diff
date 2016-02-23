@@ -301,6 +301,16 @@ class test_rectangle_finder(unittest.TestCase):
         # make sure the cython implementation stays correct during a
         # rewrite
 
+    def test_estimate_aspect_ratio(self):
+        square_points = [[0, 0],
+                         [0, 1.001],
+                         [1.001, 1],
+                         [1, 0]]
+        square = [np.array(a) for a in square_points]
+        square_ratio = rf.estimate_aspect_ratio(square, (0.5, 0.5))
+        self.assertAlmostEqual(square_ratio, 1.0, delta=1e-2)
+
+
 if __name__ == "__main__":
     run_all_tests = True
     defaultTest  = None if run_all_tests else \

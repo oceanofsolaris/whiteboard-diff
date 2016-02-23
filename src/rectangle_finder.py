@@ -193,3 +193,27 @@ def get_rectangle_from_image(image):
     rectangle_large = optimize_rectangle(rectangle_large, contour_large,
                                          image.shape[0] / 50)
     return np.array(rectangle_large)
+
+
+def estimate_aspect_ratio(rectangle, image_shape):
+    print(image_shape)
+    u0, v0 = [a / 2.0 for a in image_shape]
+    m1, m2, m3, m4 = [np.concatenate((a, [1])) for a in rectangle]
+    s = 1
+    k2 = np.dot(np.cross(m1, m4), m3) / np.dot(np.cross(m2, m4), m3)
+    k3 = np.dot(np.cross(m1, m4), m2) / np.dot(np.cross(m3, m4), m2)
+    n2 = k2 * m2 - m1
+    n3 = k3 * m3 - m1
+    print(k2, k3, n2, n3)
+    fsquared = - 1 / (n2[2] * n3[2] * s ** 2) * \
+               ((n2[0]*n3[0] - (n2[0]*n3[2] + n2[2]*n3[0])*u0 + n2[2]*n3[2]*u0**2)*s**2 \
+               +(n2[1]*n3[1] - (n2[1]*n3[2] + n2[2]*n3[1])*v0 + n2[2]*n3[2]*v0**2))
+    print(fsquared)
+    f = np.sqrt(fsquared)
+    print(f)
+    A = np.array([[f, 0, u0], [0, s * f, v0], [0, 0, 1]])
+    A_inv = np.linalg.inv(A)
+    M = np.transpose(A_inv) @ A_inv
+    w_by_h_squared = np.dot(n2, M @ n2) / np.dot(n3, M @ n3)
+    ratio = np.sqrt(w_by_h_squared)
+    return ratio if ratio < 1 else 1.0 / ratio
