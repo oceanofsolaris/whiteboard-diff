@@ -7,6 +7,7 @@ import imutils
 from skimage.transform import radon
 import helpers
 import itertools as it
+from math import sin, cos
 
 size_small = 500
 
@@ -217,3 +218,57 @@ def estimate_aspect_ratio(rectangle, image_shape):
     w_by_h_squared = np.dot(n2, M @ n2) / np.dot(n3, M @ n3)
     ratio = np.sqrt(w_by_h_squared)
     return ratio if ratio < 1 else 1.0 / ratio
+
+
+def estimate_aspect_ratio_fit(rectangle, image_shape):
+    u0, v0 = [a / 2.0 for a in image_shape]
+
+    def fit_target(x):
+        res = camera_transform(x, u0, v0)
+        return np.sum((rectangle - res) ** 2)
+
+    pih = np.pi / 2
+    init_val = [2, 10, 0.5, -2, -pih, 0, 0, 5000]
+    bounds = [(0.2, 5), (0, None), (None, None), (None, None), (None, None),
+              (None, None), (None, None), (0, None)]
+    result = scipy.optimize.minimize(fit_target, init_val, bounds=bounds)
+    x = result.x
+    w, d, t_x, t_y, phi1, phi2, phi3, f = x
+    return w, camera_transform(x, u0, v0)
+
+
+def camera_transform(x, u0, v0):
+    w, d, t_x, t_y, phi1, phi2, phi3, f = x
+    s = 1
+    A = np.array([[f,     0, u0],
+                  [0, s * f, v0],
+                  [0, 0    , 1 ]])
+    h = 1
+    translation = np.array([t_x, t_y, d])
+    R1 = np.array([[cos(phi1), -sin(phi1), 0, 0],
+                   [sin(phi1), +cos(phi1), 0, 0],
+                   [0, 0, 1, 0],
+                   [0, 0, 0, 1]]).transpose()
+    R2 = np.array([[+cos(phi2), 0, sin(phi2), 0],
+                   [0, 1, 0, 0],
+                   [-sin(phi2), 0, cos(phi2), 0],
+                   [0, 0, 0, 1]]).transpose()
+    R3 = np.array([[1, 0, 0, 0],
+                   [0, +cos(phi3), sin(phi3), 0],
+                   [0, -sin(phi3), cos(phi3), 0],
+                   [0, 0, 0, 1]]).transpose()
+    rotation = R1 @ R2 @ R3
+    T = np.array([[1, 0, 0],
+                  [0, 1, 0],
+                  [0, 0, 1],
+                  translation]).transpose()
+    oldpoints = np.array([[0, 0, 0, 1],
+                          [0, h, 0, 1],
+                          [w, 0, 0, 1],
+                          [w, h, 0, 1]]).transpose()
+    preimage_transform = T @ rotation
+    projection_transform = A
+    total_transform = projection_transform @ preimage_transform
+    image_points = total_transform @ oldpoints
+    rectangle = np.array([p[0:2] / p[2] for p in image_points.transpose()])
+    return rectangle
