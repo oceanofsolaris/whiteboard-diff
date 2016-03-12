@@ -193,7 +193,8 @@ def get_rectangle_from_image(image):
     rectangle_large = [p * ratio for p in rectangle]
     rectangle_large = optimize_rectangle(rectangle_large, contour_large,
                                          image.shape[0] / 50)
-    return np.array(rectangle_large)
+    rect_clockwise = rectangle_large[[1, 0, 2, 3], :]
+    return np.array(rect_clockwise)
 
 
 def estimate_aspect_ratio(rectangle, image_shape):

@@ -30,8 +30,7 @@ def main_fnct(filen):
     test_rect = rf.get_rectangle_from_image(sample_image)
     print(time.time() - t)
     print(test_rect)
-    rect_for_fit = test_rect[[1, 0, 2, 3], :]
-    x = rf.estimate_aspect_ratio_fit(rect_for_fit, sample_image.shape[0:2])
+    x = rf.estimate_aspect_ratio_fit(test_rect, sample_image.shape[0:2])
     print(x[0])
     fit_rect = x[1]
     print(fit_rect)

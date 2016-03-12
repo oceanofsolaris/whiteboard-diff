@@ -268,8 +268,8 @@ def get_corners(lines):
             # The two lines are opposite in the rectangle
             break
     lines = [l, rest[0], ol, rest[1]]
-    corners = [find_intersection(lines[ii], lines[(ii + 1) % 4])
-               for ii in range(4)]
+    corners = np.array([find_intersection(lines[ii], lines[(ii + 1) % 4])
+                        for ii in range(4)])
     return (corners, lines)
 
 
