@@ -148,8 +148,8 @@ def find_rectangle(contour_image, max_evals=(4 ** 4)):
         corners, lines = helpers.get_corners(rect_lines)
         quality = rectangle_quality(corners, contour_image)
         rectangles.append((quality, corners))
-    rectangles.sort(key=lambda x: x[0])
-    return rectangles[-1][1]
+    rectangles.sort(key=lambda x: -x[0])
+    return rectangles[0][1]
 
 
 def optimize_rectangle(rectangle, contour_image, max_offset=10):
