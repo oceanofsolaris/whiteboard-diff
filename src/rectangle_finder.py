@@ -34,7 +34,13 @@ def get_small_edge(image, target_height=size_small):
         image_res = imutils.resize(image, height=target_height)
     else:
         image_res = image
-    return [auto_canny(desaturate(image_res), sigma=0.5), ratio]
+    edges = auto_canny(desaturate(image_res), sigma=0.5)
+    # We sometimes have some crap at the edges. Remove it.
+    edges[:, :2] = 0
+    edges[:, -2:] = 0
+    edges[:2, :] = 0
+    edges[-2, ::] = 0
+    return [edges, ratio]
 
 
 def poor_mans_sino(contour_image):
