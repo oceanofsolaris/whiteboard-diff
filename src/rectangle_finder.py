@@ -8,6 +8,7 @@ from skimage.transform import radon
 import helpers
 import itertools as it
 from math import sin, cos
+import matplotlib.pyplot as plt
 
 size_small = 500
 
@@ -127,7 +128,7 @@ def rectangle_quality(rectangle, contour_image, cutoffs=(0.7, 0.95), debug=False
     return quality
 
 
-def find_rectangle(contour_image, max_evals=(4 ** 4)):
+def find_rectangle(contour_image, max_evals=(4 ** 4), debug=False):
     sino = poor_mans_sino(contour_image)
     c_shape = contour_image.shape
     candidates, c_vals = get_blurred_peaks(sino)
@@ -149,13 +150,32 @@ def find_rectangle(contour_image, max_evals=(4 ** 4)):
         quality = rectangle_quality(corners, contour_image)
         rectangles.append((quality, corners))
     rectangles.sort(key=lambda x: -x[0])
+    if debug:
+        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+        axes[0].imshow(contour_image, cmap=plt.cm.Greys_r)
+        axes[1].imshow(sino/ np.max(sino), cmap=plt.cm.Greys_r)
+        colors = ['r', 'g', 'b', 'y']
+        for bb, bucket in enumerate(candidate_buckets):
+            for ll, line_ind in enumerate(helpers.take(bucket, 5)):
+                line = np.array(candidate_lines[line_ind])
+                sino_l = candidates[line_ind]
+                axes[0].scatter(line[:, 1], line[:, 0], s=10 * (5 - ll), c=colors[bb])
+                axes[1].scatter(sino_l[1], sino_l[0], s=10 * (5 - ll), c=colors[bb])
+        for ii in range(5):
+            print('Quality:', rectangles[ii][0])
+            print(rectangles[ii][1])
+            print()
+        plt.show()
+        plt.imshow(contour_image, cmap=plt.cm.Greys_r)
+        print(rectangle_quality(rectangles[0][1], contour_image, debug=True))
+        plt.show()
     return rectangles[0][1]
 
 
 def optimize_rectangle(rectangle, contour_image, max_offset=10):
     lines = helpers.get_pairs_cycle(iter(rectangle))
     opt_lines = np.zeros((4, 2, 2), np.float64)
-    for (ii,line) in enumerate(lines):
+    for (ii, line) in enumerate(lines):
         opt_lines[ii, :, :] = optimize_line(line, contour_image, max_offset)
     return helpers.get_corners(opt_lines)[0]
 
@@ -191,15 +211,30 @@ def optimize_line(endpoints, contour_image, max_offset):
                      coor_b + normal_vec * best_offsets[1]])
 
 
-def get_rectangle_from_image(image):
+def get_rectangle_from_image(image, debug=False):
     (contour_image, ratio) = get_small_edge(image)
-    rectangle = find_rectangle(contour_image)
-    rectangle = optimize_rectangle(rectangle, contour_image, size_small / 50)
+    rectangle = find_rectangle(contour_image, debug=debug)
+    rectangle_o = optimize_rectangle(rectangle, contour_image, size_small / 25)
     (contour_large, _) = get_small_edge(image, target_height=image.shape[0])
-    rectangle_large = [p * ratio for p in rectangle]
+    rectangle_large = [p * ratio for p in rectangle_o]
     rectangle_large = optimize_rectangle(rectangle_large, contour_large,
                                          image.shape[0] / 50)
     rect_clockwise = rectangle_large[[1, 0, 2, 3], :]
+    if debug:
+        plt.imshow(contour_image, cmap=plt.cm.Greys_r)
+        rectangle_quality(rectangle, contour_image, debug=True)
+        print('original')
+        print(rectangle)
+        print('optimized')
+        print(rectangle_o)
+        print('end')
+        plt.show()
+        plt.imshow(contour_image, cmap=plt.cm.Greys_r)
+        rectangle_quality(rectangle_o, contour_image, debug=True)
+        plt.show()
+        plt.imshow(contour_large, cmap=plt.cm.Greys_r)
+        rectangle_quality(rectangle_large, contour_large, debug=True)
+        plt.show()
     return np.array(rect_clockwise)
 
 
