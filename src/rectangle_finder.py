@@ -195,10 +195,15 @@ def optimize_line(endpoints, contour_image, max_offset):
         return -cython_helpers.wu_sum(contour_image, x_a, x_b)
 
     n_tries = 5
-    rands = np.random.random((n_tries, 2)) * 2 * max_offset - max_offset
+    m = 0.9
+    init_coords = np.array([[-max_offset * m, -max_offset * m],
+                            [-max_offset * m, max_offset * m],
+                            [max_offset * m, -max_offset * m],
+                            [max_offset * m, max_offset * m],
+                            [0, 0]])
+    #rands = np.random.random((n_tries, 2)) * 2 * max_offset - max_offset
     # Always have one try start at the initially estimated position
-    rands[0, :] = 0
-    results = [scipy.optimize.minimize(opt_target, rands[ii, :],
+    results = [scipy.optimize.minimize(opt_target, init_coords[ii, :],
                                        bounds=[[-max_offset, max_offset],
                                                [-max_offset, max_offset]],
                                        tol=1e-3)
@@ -206,9 +211,9 @@ def optimize_line(endpoints, contour_image, max_offset):
     vals = [res.fun for res in results]
     best = np.argmin(vals)
     best_offsets = results[best].x
-
-    return np.array([coor_a + normal_vec * best_offsets[0],
-                     coor_b + normal_vec * best_offsets[1]])
+    new_line = np.array([coor_a + normal_vec * best_offsets[0],
+                        coor_b + normal_vec * best_offsets[1]])
+    return new_line
 
 
 def get_rectangle_from_image(image, debug=False):
