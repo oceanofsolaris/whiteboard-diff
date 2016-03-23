@@ -54,7 +54,7 @@ def poor_mans_sino(contour_image):
             pt2 = [b[0][1], b[0][0]]
             (offset, angle) = helpers.line_to_sino([pt1, pt2], orig_shape)
             (angle_r, offset_r) = [int(np.floor(item)) for item in (angle, offset)]
-            sino[offset_r, angle_r] += np.sqrt(np.sum((a - b) ** 2))
+            sino[offset_r, angle_r] += np.sum((a - b) ** 2)
     return sino
 
 
@@ -108,13 +108,13 @@ def line_quality(l, contour_image, width=3, debug=False):
     return quality
 
 
-def rectangle_quality(rectangle, contour_image, cutoffs=(0.4, 0.95), debug=False):
+def rectangle_quality(rectangle, contour_image, cutoffs=(0.7, 0.95), debug=False):
     lines = helpers.get_pairs_cycle(iter(rectangle))
     # TODO: test for good cutoff values (maybe make these more dynamic
     lower_cutoff = cutoffs[0]
     upper_cutoff = cutoffs[1]
     sigma = lambda x: helpers.clamp_sigmoid(x, lower_cutoff, upper_cutoff)
-    line_qualities_raw = [line_quality(l, contour_image, 3, debug)
+    line_qualities_raw = [line_quality(l, contour_image, 5, debug)
                           for l in lines]
     line_qualities = [sigma(q) for q in line_qualities_raw]
     area = helpers.rectangle_area(rectangle)
