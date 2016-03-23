@@ -396,3 +396,12 @@ def rectangle_area(rectangle_points):
     area2 = np.cross(points[2] - points[3],
                      points[3] - points[0])
     return (abs(area1) + abs(area2)) / 2
+
+
+def take(iterator, number):
+    iterator = iter(iterator)
+    try:
+        for nn in range(number):
+            yield(next(iterator))
+    except StopIteration:
+        pass
