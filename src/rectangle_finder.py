@@ -293,8 +293,7 @@ def estimate_aspect_ratio_fit(rectangle, image_shape):
         res = camera_transform(x, u0, v0)
         return np.sum((rectangle - res) ** 2)
 
-    pih = np.pi / 2
-    init_val = [2, 10, 0.5, -2, -pih, 0, 0, 5000]
+    init_val = [2, 10, 0, 0, 0, 0, 0, 100]
     bounds = [(0.2, 5), (0, None), (None, None), (None, None), (None, None),
               (None, None), (None, None), (0, None)]
     result = scipy.optimize.minimize(fit_target, init_val, bounds=bounds)

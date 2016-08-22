@@ -301,13 +301,13 @@ class test_rectangle_finder(unittest.TestCase):
         # make sure the cython implementation stays correct during a
         # rewrite
 
-    def test_estimate_aspect_ratio(self):
-        square_points = [[0, 0],
-                         [0, 1.001],
-                         [1.001, 1],
-                         [1, 0]]
-        square = [np.array(a) for a in square_points]
-        square_ratio = rf.estimate_aspect_ratio(square, (0.5, 0.5))
+    def test_estimate_aspect_ratio_fit(self):
+        square_points = [ [1, 0],
+                          [0, 0],
+                          [1.001, 1],
+                          [0, 1.001]]
+        square = np.array([np.array(a) for a in square_points])
+        square_ratio, _ = rf.estimate_aspect_ratio_fit(square, (0.5, 0.5))
         self.assertAlmostEqual(square_ratio, 1.0, delta=1e-2)
 
 
