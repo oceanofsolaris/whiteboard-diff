@@ -243,12 +243,12 @@ def get_rectangle_from_image(image, debug=False):
     return np.array(rect_clockwise)
 
 
-def estimate_aspect_ratio(rectangle, image_shape):
-    print(image_shape)
+def estimate_aspect_ratio(rectangle, image_shape, debug=False):
     v0, u0 = [a / 2.0 for a in image_shape]
     v0, u0 = (0, 0)
     m1, m2, m3, m4 = [np.concatenate((a, [1])) for a in rectangle]
     # put the points into anti-clockwise order
+    # Does this really work?
     if m1[0] * m2[1] - m1[1] * m2[0] < 0:
         m1, m2, m3, m4 = m4, m3, m2, m1
     #m1, m2, m4, m3 = (m1, m2, m3, m4)
@@ -258,7 +258,6 @@ def estimate_aspect_ratio(rectangle, image_shape):
     k3 = np.dot(np.cross(m1, m4), m2) / np.dot(np.cross(m3, m4), m2)
     n2 = k2 * m2 - m1
     n3 = k3 * m3 - m1
-    print(k2, k3, n2, n3)
     tol = 1e-10
     if abs(n2[2]) < tol or abs(n3[2]) < tol:
         # Oh my, this does not work under these circumstances. Think a
@@ -268,21 +267,24 @@ def estimate_aspect_ratio(rectangle, image_shape):
         fsquared = - 1 / (n2[2] * n3[2] * s ** 2) * \
             ((n2[0]*n3[0] - (n2[0]*n3[2] + n2[2]*n3[0])*u0 + n2[2]*n3[2]*u0**2)*s**2 \
              +(n2[1]*n3[1] - (n2[1]*n3[2] + n2[2]*n3[1])*v0 + n2[2]*n3[2]*v0**2))
-    print(fsquared)
     f = np.sqrt(fsquared)
-    print(f)
     A = np.array([[f, 0, u0], [0, s * f, v0], [0, 0, 1]])
-    print('recovered A')
-    print(A)
     A_inv = np.linalg.inv(A)
     M = np.transpose(A_inv) @ A_inv
     tst = np.transpose(n2) @ M @ n3
-    print('tst', tst)
-    print((np.transpose(n2) @ M @ n2))
-    print((np.transpose(n3) @ M @ n3))
     w_by_h_squared = (np.transpose(n2) @ M @ n2) / (np.transpose(n3) @ M @ n3)
     ratio = np.sqrt(w_by_h_squared)
-    print(ratio)
+    if debug:
+        print(image_shape)
+        print(k2, k3, n2, n3)
+        print(fsquared)
+        print(f)
+        print('recovered A')
+        print(A)
+        print('tst', tst)
+        print((np.transpose(n2) @ M @ n2))
+        print((np.transpose(n3) @ M @ n3))
+        print(ratio)
     return ratio if ratio < 1 else 1.0 / ratio
 
 
