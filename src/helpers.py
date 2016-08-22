@@ -102,6 +102,7 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
         min_y += width
         max_y -= width
 
+    # The next to if... blocks handle the two end-points
     if weight_first != 0.0 and width == 0:
         fst_offset = np.abs(proper_y0 - y0) - dy_by_dx * (1 - weight_first)
         fst_y0 = proper_y0
@@ -138,6 +139,8 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
     cur_offset = np.abs(proper_y0 - y0) + dy_by_dx * weight_first
     cur_y = proper_y0
 
+    # Everything before this was set-up and handling of the end
+    # points. Now cames the actual sum over the body of the line.
     tmp_n = 0
     for (ll, cur_x) in enumerate(range(proper_x0, proper_x1 + 1)):
         a = 0
@@ -172,6 +175,10 @@ def wu_sum(array, p1, p2, count=False, width=0, debug=False):
 
 
 def wu_average(array, p1, p2, count=False, width=0, debug=False):
+    """Returns the wu_sum over the line given by p1, p2 divided by the
+    length of said line. So the averaged value of entries along this
+    line.
+    """
     line_length = np.sqrt(np.sum((np.array(p1) - np.array(p2)) ** 2))
     val = wu_sum(array, p1, p2, count, width, debug=debug)
     return val / line_length

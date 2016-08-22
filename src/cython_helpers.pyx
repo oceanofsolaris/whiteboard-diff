@@ -9,10 +9,11 @@ def wu_sum(np.ndarray [DTYPE_t, ndim=2] array, p1, p2, bint count=False, int wid
     """This function is a wrapper around the Cython implementation of
     wu_sum. Its call signature is identical to the one of
     helpers.wu_sum. If possible, it is recommended to call
-    wu_sum_cython() directly for increased performance.
+    wu_sum_cython() directly.
+    The debug parameter is ignored in this implementation.
 
     """
-    return wu_sum_cython(array, p1[0], p1[1], p2[0], p2[1], count, width, debug)
+    return wu_sum_cython(array, p1[0], p1[1], p2[0], p2[1], count, width)
     
 
 def wu_sort_points(double p1_0, double p1_1, double p2_0, double p2_1):
@@ -27,13 +28,18 @@ def wu_sort_points(double p1_0, double p1_1, double p2_0, double p2_1):
     return (p1_0, p1_1, p2_0, p2_1, switch_dim)
 
 
-def wu_sum_cython(np.ndarray [DTYPE_t, ndim=2] array, double p1_0, double p1_1, double p2_0, double p2_1, bint count=False, int width=0, bint debug=False):
+def wu_sum_cython(np.ndarray [DTYPE_t, ndim=2] array, double p1_0, double p1_1, double p2_0, double p2_1, bint count=False, int width=0):
     """Sum over the entries in array tha lie on the line between p1 and
     p2. Uses cheap aliasing for this sum.  Width changes this into a
-    'fat' line that covers 1+width pixels. The algorithm is 'cheap'
-    and not always completely accurate.
-    This function is messy and slow. Refactor (maybe in Cython) at some
-    point.
+    'fat' line that covers 1+width pixels. As the name implies, this
+    is an implemention of wu's antialiased line drawing algorithm (but
+    instead of drawing a line, we sum over it).
+    This function was very slow in python, but this refactor in Cython
+    made it usable due to a 200x speedup.
+    There is some arbitraryness in how exactly we handle non-integer
+    end points (original wu's algorithm always has integer end
+    points), but our choice has no real influence on the use case at
+    hand.
 
     """
     assert array.dtype == DTYPE
@@ -159,6 +165,13 @@ def wu_sum_cython(np.ndarray [DTYPE_t, ndim=2] array, double p1_0, double p1_1, 
 
 def wu_average(np.ndarray [DTYPE_t, ndim=2] array, p1, p2,
                bint count=False, int width=0, bint debug=False):
+    """This function is a wrapper around the Cython implementation of
+    wu_average. Its call signature is identical to the one of
+    helpers.wu_average. If possible, it is recommended to call
+    wu_sum_cython() directly.
+    The debug parameter is ignored in this implementation.
+
+    """
     return wu_average_cython(array, p1[0], p1[1], p2[0], p2[1], count=count,
                              width=width)
 
@@ -176,9 +189,11 @@ def wu_average_cython(np.ndarray [DTYPE_t, ndim=2] array,
 
 
 def dilate(np.ndarray [np.float64_t, ndim=2] A, int width):
-    """This function replaces every value in the 2D array by the maximum in
-    the region +- width. This cython rewrite should be a bit faster than
-    the previous python version."""
+    """This function replaces every value in the 2D array by the maximum
+    in the region +- width. This cython is faster than the python
+    implementation by a factor of ~100.
+
+    """
     cdef int x_l = A.shape[0]
     cdef int y_l = A.shape[1]
     cdef np.ndarray [np.float64_t, ndim=2] B = A.copy()
