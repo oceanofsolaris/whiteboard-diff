@@ -206,7 +206,7 @@ def find_intersection(line1, line2):
     #  b * (1 - y[0] / x[0] * x[1] / y[1]) = c[1] / y[1] - c[0] * x[1] / x[0] / y[1]
     # Silence 'division by zero' and 'invalid value' errors, since
     # these result in NaN or Inf anyways
-    old_err = {a:np.geterr()[a] for a in ['divide', 'invalid']}
+    old_err = {a: np.geterr()[a] for a in ['divide', 'invalid']}
     np.seterr(divide='ignore', invalid='ignore')
     b = (c[1] / y[1] - c[0] * x[1] / x[0] / y[1]) / (1 - y[0] / x[0] * x[1] / y[1])
     a = (c[0] - b * y[0]) / x[0]

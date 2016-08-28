@@ -294,7 +294,7 @@ class test_rectangle_finder(unittest.TestCase):
         # python implementation
         test_array = np.random.random(size=(200, 200))
         self.dilate_compare(test_array, width=5)
-        
+
         # This is a shitty test. I should think of something
         # better. For now it works fine though, since I kind of trust
         # the python implementation to be correct and only use it to
@@ -312,10 +312,10 @@ class test_rectangle_finder(unittest.TestCase):
             self.assertAlmostEqual(fctdist, totaldist, delta=1e-13)
 
     def test_estimate_aspect_ratio_fit(self):
-        square_points = [ [1, 0],
-                          [0, 0],
-                          [1.001, 1],
-                          [0, 1.001]]
+        square_points = [[1, 0],
+                         [0, 0],
+                         [1.001, 1],
+                         [0, 1.001]]
         square = np.array([np.array(a) for a in square_points])
         square_ratio, _ = rf.estimate_aspect_ratio_fit(square, (0.5, 0.5))
         self.assertAlmostEqual(square_ratio, 1.0, delta=1e-2)
