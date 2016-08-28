@@ -288,18 +288,41 @@ def estimate_aspect_ratio(rectangle, image_shape, debug=False):
     return ratio if ratio < 1 else 1.0 / ratio
 
 
-def estimate_aspect_ratio_fit(rectangle, image_shape):
+def point_distance_sum(pointsA, pointsB):
+    total_dist = 0
+    for points in pointsA:
+        dists = [np.sum((pb - points) ** 2) for pb in pointsB]
+        best_ind = np.argmin(dists)
+        total_dist += dists[best_ind]
+        pointsB = np.delete(pointsB, best_ind, axis=0)
+    return total_dist
+
+
+def estimate_aspect_ratio_fit(rectangle, image_shape, visual_debug=False):
     u0, v0 = [a / 2.0 for a in image_shape]
+
+    def debug_fit_callback(x):
+        res = camera_transform(x, u0, v0)
+        plt.scatter(res[:, 1], res[:, 0], c=['r', 'g', 'b', 'y'], s=20)
 
     def fit_target(x):
         res = camera_transform(x, u0, v0)
-        return np.sum((rectangle - res) ** 2)
+        return point_distance_sum(rectangle, res)
 
-    init_val = [2, 10, 0, 0, 0, 0, 0, 100]
-    bounds = [(0.2, 5), (0, None), (None, None), (None, None), (None, None),
+    min_width = min(image_shape)
+    init_val = [1, 5, 0, 0, 0, 0, 0, min_width * 10]
+    init_res = camera_transform(init_val, u0, v0)
+    bounds = [(0.1, 10), (0, None), (None, None), (None, None), (None, None),
               (None, None), (None, None), (0, None)]
-    result = scipy.optimize.minimize(fit_target, init_val, bounds=bounds)
-    x = result.x
+    if visual_debug:
+        result = scipy.optimize.minimize(fit_target, init_val, bounds=bounds,
+                                         callback=debug_fit_callback)
+        plt.scatter(rectangle[:,1], rectangle[:,0], c=['r', 'g', 'b', 'y'], s=80)
+        plt.scatter(init_res[:,1], init_res[:,0], c=['r', 'g', 'b', 'y'], s=80)
+        plt.show()
+    else:
+        result = scipy.optimize.minimize(fit_target, init_val, bounds=bounds)
+        x = result.x
     w, d, t_x, t_y, phi1, phi2, phi3, f = x
     return w, camera_transform(x, u0, v0)
 

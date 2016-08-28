@@ -301,6 +301,16 @@ class test_rectangle_finder(unittest.TestCase):
         # make sure the cython implementation stays correct during a
         # rewrite
 
+    def test_point_distance_sum(self):
+        for ii in range(10):
+            points = np.random.random((4, 2)) * 100
+            dists = np.random.random((4, 2)) * 0.01
+            points2 = points + dists
+            totaldist = np.sum([np.sum(points ** 2) for points in dists])
+            np.random.shuffle(points2)
+            fctdist = rf.point_distance_sum(points, points2)
+            self.assertAlmostEqual(fctdist, totaldist, delta=1e-13)
+
     def test_estimate_aspect_ratio_fit(self):
         square_points = [ [1, 0],
                           [0, 0],
