@@ -30,7 +30,7 @@ are too bad to get any reliable image.
 
 After acquiring the image, we search for the borders of a
 whiteboard. We do this by searching for edges in the picture (using a
-canny edge detection) and then taking a pseudo-radon transform*.
+canny edge detection) and then taking a pseudo-radon transform\*.
 Long straight edges will show up as local maxima in this radon
 transform, which we are easily able to detect.
 
@@ -57,7 +57,7 @@ Ideas for the future:
    filter, we get edge orientation for free. This can be used for the
    pseudo-radon transform.
 
-* We don't perform a true radon transform since that is quite
+\* We don't perform a true radon transform since that is quite
   slow. Instead, we isolate straight lines (using the findContours function
   from opencv) after performing the edge. We project these straight
   lines into the 'radon' space to get a much more efficient of the
