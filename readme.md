@@ -61,8 +61,8 @@ Ideas for the future:
   slow. Instead, we isolate straight lines (using the findContours
   function from opencv) after performing the edge detection. We
   project these straight lines into the 'radon' space to get a much
-  more efficient of the radon transform that works reasonably well for
-  b/w images with straight lines.
+  more efficient approximation of a radon transform that works
+  reasonably well for b/w images with long enough straight lines.
 
 # Aspect ratio estimation
 
