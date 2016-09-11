@@ -14,6 +14,7 @@ To do this, we need to
  homogenizing the background and normalize colors.
  5. Compare to previous state and only save if there is enough difference.
  6. Export the current and previous state.
+
 As of now, only the steps 2. and 3. are implemented.
 
 # Image acquisition
