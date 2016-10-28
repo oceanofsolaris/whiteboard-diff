@@ -89,10 +89,16 @@ aspect ratio. This should can e.g. be done using the camera matrix
 recovered during aspect ratio estimation and some kind of texture
 filtering for good interpolation.
 
-Then we need tohomogenize the background color and brightness
+Then we need to homogenize the background color and brightness
 (ideas: strongly blurring the image and then subtracting this blurred image
 from the image to remove background color; finding a mode in color
 distribution to detect background color etc.).
+
+Regarding homogenization: There is some exciting looking work done at
+https://github.com/mzucker/noteshrink that I should be able to leverage
+for this step. It identifies clusters in color space and uses these to
+properly filter background etc. if I understood correctly. Definitely worth
+considering!
 
 # Compare to previous state to detect changes
 
